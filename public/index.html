@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BEER LAB - 夯啤</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -11,879 +12,2128 @@
             background: #0a0a0a;
             color: #fff;
             min-height: 100vh;
+            overflow: hidden;
+            position: relative;
         }
-
-        /* 登录页面 */
-        .login-screen {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
-            padding: 20px;
-        }
-        .login-screen.hidden { display: none; }
         
-        .login-box {
-            background: rgba(20,20,20,0.9);
+        /* 大背景啤酒杯 */
+        .bg-beer {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 500px;
+            opacity: 0.03;
+            z-index: 0;
+            pointer-events: none;
+        }
+        
+        /* 装饰元素 */
+        .deco {
+            position: fixed;
+            z-index: 1;
+            opacity: 0.15;
+            pointer-events: none;
+            animation: float 8s ease-in-out infinite;
+        }
+        .deco-1 { top: 12%; left: 3%; font-size: 32px; animation-delay: 0s; }
+        .deco-2 { top: 18%; right: 4%; font-size: 28px; animation-delay: 1.5s; }
+        .deco-3 { top: 55%; left: 2%; font-size: 36px; animation-delay: 0.8s; }
+        .deco-4 { top: 75%; right: 3%; font-size: 30px; animation-delay: 2s; }
+        .deco-5 { top: 35%; right: 2%; font-size: 26px; animation-delay: 1s; }
+        .deco-6 { bottom: 22%; left: 4%; font-size: 34px; animation-delay: 0.3s; }
+        .deco-7 { top: 8%; left: 20%; font-size: 24px; animation-delay: 2.5s; }
+        .deco-8 { bottom: 18%; right: 20%; font-size: 28px; animation-delay: 1.2s; }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-8px) rotate(3deg); }
+        }
+        
+        /* 顶部标题 */
+        .header {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            z-index: 50;
+            background: rgba(10,10,10,0.9);
             backdrop-filter: blur(20px);
-            padding: 40px;
-            border-radius: 24px;
+            padding: 24px 40px;
+            border-radius: 20px;
+            box-shadow: 0 0 60px rgba(255,20,147,0.2), inset 0 0 1px rgba(255,20,147,0.5);
             border: 1px solid rgba(255,20,147,0.3);
-            box-shadow: 0 0 60px rgba(255,20,147,0.15);
-            width: 100%;
-            max-width: 360px;
         }
-        .login-box h1 {
-            font-size: 36px;
-            text-align: center;
-            margin-bottom: 8px;
-        }
-        .login-box h1 span:first-child { color: #fff; }
-        .login-box h1 span:last-child { color: #ff1493; }
-        .login-box .subtitle {
-            text-align: center;
-            color: rgba(255,255,255,0.5);
-            margin-bottom: 30px;
-            font-size: 12px;
-            letter-spacing: 2px;
-        }
-        .form-group {
-            margin-bottom: 16px;
-        }
-        .form-group label {
-            display: block;
-            font-size: 12px;
-            color: rgba(255,255,255,0.6);
+        .header h1 {
+            font-size: 52px;
+            font-weight: 900;
+            letter-spacing: -2px;
             margin-bottom: 6px;
         }
-        .form-group input {
-            width: 100%;
-            padding: 14px 16px;
-            background: rgba(255,255,255,0.05);
-            border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 12px;
-            color: #fff;
-            font-size: 15px;
-            outline: none;
-            transition: all 0.2s;
-        }
-        .form-group input:focus {
-            border-color: #ff1493;
-            box-shadow: 0 0 0 3px rgba(255,20,147,0.1);
-        }
-        .btn {
-            width: 100%;
-            padding: 14px;
-            border: none;
-            border-radius: 12px;
-            font-size: 15px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s;
-            margin-top: 8px;
-        }
-        .btn-primary {
-            background: linear-gradient(135deg, #ff1493, #ff69b4);
-            color: #fff;
-        }
-        .btn-primary:hover { transform: scale(1.02); }
-        .btn-secondary {
-            background: rgba(255,255,255,0.1);
-            color: #fff;
-        }
-        .btn-secondary:hover { background: rgba(255,255,255,0.15); }
-        .login-switch {
-            text-align: center;
-            margin-top: 20px;
-            font-size: 13px;
-            color: rgba(255,255,255,0.5);
-        }
-        .login-switch a {
-            color: #ff1493;
-            cursor: pointer;
-            text-decoration: none;
-        }
-        .error-msg {
-            color: #ff4444;
-            font-size: 12px;
-            margin-top: 8px;
-            text-align: center;
-        }
-        .guest-link {
-            text-align: center;
-            margin-top: 16px;
-            font-size: 12px;
-            color: rgba(255,255,255,0.4);
-        }
-        .guest-link a {
-            color: #ff1493;
-            cursor: pointer;
-        }
-
-        /* 主应用 */
-        .app-screen { display: none; }
-        .app-screen.active { display: block; }
-
-        /* 顶部导航 */
-        .top-nav {
+        .header h1 span:first-child { color: #fff; }
+        .header h1 span:last-child { color: #ff1493; }
+        .header .subtitle { color: rgba(255,255,255,0.6); font-size: 11px; letter-spacing: 4px; margin-top: 4px; text-transform: uppercase; }
+        
+        /* 主内容区 */
+        .main-content {
             position: fixed;
             top: 0;
             left: 0;
             right: 0;
-            height: 56px;
-            background: rgba(10,10,10,0.95);
+            bottom: 0;
+        }
+        
+        /* 力导向图 */
+        #network {
+            width: 100%;
+            height: 100%;
+        }
+        
+        /* 坐标轴 */
+        .axis-h {
+            position: fixed;
+            top: 50%;
+            left: 50px;
+            right: 50px;
+            height: 1px;
+            background: linear-gradient(90deg, #ff1493, rgba(255,20,147,0.3), #ff1493);
+            transform: translateY(-50%);
+            z-index: 5;
+        }
+        .axis-v {
+            position: fixed;
+            left: 50%;
+            top: 50px;
+            bottom: 80px;
+            width: 1px;
+            background: linear-gradient(180deg, #ff1493, rgba(255,20,147,0.3), #ff1493);
+            transform: translateX(-50%);
+            z-index: 5;
+        }
+        
+        /* 轴标签 */
+        .axis-label {
+            position: fixed;
+            font-size: 11px;
+            font-weight: 700;
+            color: #ff1493;
+            background: rgba(255,20,147,0.1);
             backdrop-filter: blur(10px);
-            display: flex;
+            padding: 6px 14px;
+            border-radius: 20px;
+            z-index: 10;
+            border: 1px solid rgba(255,20,147,0.4);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .axis-label.x-left { top: 50%; left: 60px; transform: translateY(-50%); }
+        .axis-label.x-right { top: 50%; right: 60px; transform: translateY(-50%); }
+        .axis-label.y-top { top: 80px; left: 50%; transform: translateX(-50%); }
+        .axis-label.y-bottom { bottom: 100px; left: 50%; transform: translateX(-50%); }
+        
+        /* 节点样式 */
+        .node { cursor: grab; }
+        .node:active { cursor: grabbing; }
+        .node:hover circle.main { filter: brightness(1.2) drop-shadow(0 0 20px rgba(255,20,147,0.6)); }
+        .node-label {
+            font-size: 12px;
+            fill: #fff;
+            text-anchor: middle;
+            pointer-events: none;
+            font-weight: 700;
+            text-shadow: 0 1px 3px rgba(0,0,0,0.8);
+        }
+        .link { stroke: rgba(0,0,0,0.06); stroke-width: 1; }
+        
+        /* 跟随 tooltip */
+        .tip-container {
+            position: fixed;
+            z-index: 9999;
+            pointer-events: none;
+        }
+        .tip-container.show {
+            pointer-events: auto;
+        }
+        .tip-card {
+            background: rgba(15,15,15,0.98);
+            backdrop-filter: blur(20px);
+            border-radius: 16px;
+            padding: 16px;
+            border: 1px solid rgba(255,20,147,0.5);
+            box-shadow: 0 8px 40px rgba(0,0,0,0.6), 0 0 30px rgba(255,20,147,0.15);
+            color: #fff;
+            font-size: 12px;
+            width: 280px;
+        }
+        .tip-header { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+        .tip-color { width: 40px; height: 40px; border-radius: 10px; flex-shrink: 0; box-shadow: 0 2px 10px rgba(0,0,0,0.5); }
+        .tip-info { flex: 1; }
+        .tip-name { font-size: 18px; font-weight: 800; }
+        .tip-en { font-size: 11px; color: rgba(255,255,255,0.5); margin-top: 2px; }
+        .tip-abv { background: rgba(255,20,147,0.2); padding: 5px 12px; border-radius: 10px; font-size: 12px; font-weight: 700; color: #ff1493; white-space: nowrap; }
+        .tip-style { background: rgba(255,20,147,0.05); padding: 10px; border-radius: 8px; margin-bottom: 12px; border-left: 3px solid #ff1493; font-size: 12px; color: rgba(255,255,255,0.85); line-height: 1.6; }
+        .tip-glossary-title { font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: rgba(255,20,147,0.8); margin-bottom: 6px; font-weight: 700; }
+        .tip-glossary { margin-bottom: 10px; }
+        .tip-glossary-item { display: flex; align-items: flex-start; gap: 6px; margin-bottom: 6px; font-size: 11px; line-height: 1.4; }
+        .tip-glossary-item::before { content: '•'; color: #ff1493; font-weight: bold; flex-shrink: 0; }
+        .tip-glossary-term { color: #ffd700; font-weight: 600; }
+        .tip-glossary-desc { color: rgba(255,255,255,0.7); }
+        .tip-brand { font-size: 11px; color: rgba(255,255,255,0.5); margin-bottom: 8px; }
+        .tip-tags { display: flex; flex-wrap: wrap; gap: 4px; }
+        .tip-tag { background: rgba(255,20,147,0.15); padding: 3px 8px; border-radius: 8px; font-size: 10px; color: #ff1493; }
+        
+        /* 游戏弹窗 */
+        .game-modal {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.85);
+            z-index: 10000;
+            display: none;
+            justify-content: center;
             align-items: center;
+            backdrop-filter: blur(10px);
+        }
+        .game-modal.show { display: flex; }
+        .game-content {
+            background: rgba(15,15,15,0.98);
+            border-radius: 24px;
+            padding: 24px;
+            max-width: 400px;
+            width: calc(100% - 40px);
+            border: 1px solid rgba(255,20,147,0.3);
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        .game-header {
+            display: flex;
             justify-content: space-between;
-            padding: 0 16px;
-            z-index: 100;
-            border-bottom: 1px solid rgba(255,255,255,0.05);
-        }
-        .top-nav .logo {
-            font-size: 18px;
-            font-weight: 800;
-        }
-        .top-nav .logo span:first-child { color: #fff; }
-        .top-nav .logo span:last-child { color: #ff1493; }
-        .top-nav .user-info {
-            display: flex;
             align-items: center;
-            gap: 8px;
+            margin-bottom: 20px;
+        }
+        .game-header h2 { font-size: 20px; color: #fff; margin: 0; }
+        .game-close {
+            width: 32px; height: 32px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.1);
+            border: none;
+            color: #fff;
+            font-size: 20px;
             cursor: pointer;
         }
-        .top-nav .user-avatar {
-            width: 32px;
-            height: 32px;
-            background: linear-gradient(135deg, #ff1493, #ff69b4);
-            border-radius: 50%;
+        .game-close:hover { background: rgba(255,20,147,0.3); }
+        .game-list { display: flex; flex-direction: column; gap: 12px; }
+        .game-item {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,20,147,0.2);
+            border-radius: 16px;
+            padding: 16px;
             display: flex;
             align-items: center;
-            justify-content: center;
-            font-size: 14px;
+            gap: 14px;
+            cursor: pointer;
+            transition: all 0.3s;
         }
-        .top-nav .user-name {
+        .game-item:hover {
+            background: rgba(255,20,147,0.1);
+            border-color: #ff1493;
+            transform: translateX(5px);
+        }
+        .game-icon { font-size: 32px; }
+        .game-title { font-size: 16px; font-weight: 700; color: #fff; }
+        .game-desc { font-size: 12px; color: rgba(255,255,255,0.5); }
+        
+        /* 调酒游戏 */
+        .brew-steps { margin-bottom: 20px; }
+        .brew-step { margin-bottom: 16px; }
+        .brew-label { font-size: 12px; color: #ff1493; font-weight: 700; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px; }
+        .brew-options { display: flex; flex-wrap: wrap; gap: 8px; }
+        .brew-opt {
+            padding: 8px 14px;
+            border-radius: 20px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            color: rgba(255,255,255,0.7);
+            cursor: pointer;
+            transition: all 0.2s;
             font-size: 13px;
-            max-width: 100px;
+        }
+        .brew-opt.selected {
+            background: rgba(255,20,147,0.2);
+            border-color: #ff1493;
+            color: #fff;
+        }
+        .brew-result {
+            background: rgba(255,20,147,0.05);
+            border: 1px solid rgba(255,20,147,0.2);
+            border-radius: 16px;
+            padding: 20px;
+            text-align: center;
+            margin-bottom: 16px;
+        }
+        .brew-preview { width: 60px; height: 60px; border-radius: 50%; margin: 0 auto 12px; }
+        .brew-name { font-size: 18px; font-weight: 800; color: #fff; margin-bottom: 6px; }
+        .brew-desc { font-size: 12px; color: rgba(255,255,255,0.6); }
+        .brew-btn {
+            width: 100%;
+            padding: 14px;
+            border-radius: 20px;
+            background: linear-gradient(135deg, #ff1493, #ff69b4);
+            border: none;
+            color: #fff;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .brew-btn:hover { transform: scale(1.02); box-shadow: 0 4px 20px rgba(255,20,147,0.4); }
+        
+        /* 心情挑酒 */
+        .mood-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 16px; }
+        .mood-item {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,20,147,0.2);
+            border-radius: 16px;
+            padding: 16px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .mood-item:hover { background: rgba(255,20,147,0.1); transform: scale(1.03); }
+        .mood-icon { font-size: 32px; margin-bottom: 8px; }
+        .mood-text { font-size: 13px; color: #fff; font-weight: 600; }
+        .mood-result {
+            background: rgba(255,20,147,0.1);
+            border: 1px solid rgba(255,20,147,0.3);
+            border-radius: 16px;
+            padding: 20px;
+            text-align: center;
+        }
+        .mood-result-icon { font-size: 40px; margin-bottom: 10px; }
+        .mood-result-name { font-size: 18px; font-weight: 800; color: #fff; margin-bottom: 6px; }
+        .mood-result-desc { font-size: 12px; color: rgba(255,255,255,0.7); line-height: 1.5; }
+        
+        /* 今天喝了吗 */
+        .drank-choices { display: flex; flex-direction: column; gap: 12px; margin-bottom: 16px; }
+        .drank-choice {
+            display: flex; align-items: center; gap: 12px;
+            padding: 16px; background: rgba(255,255,255,0.05);
+            border-radius: 16px; cursor: pointer; transition: all 0.3s;
+            border: 1px solid transparent;
+        }
+        .drank-choice:hover { background: rgba(255,20,147,0.1); border-color: rgba(255,20,147,0.3); }
+        .drank-choice-icon { font-size: 28px; }
+        .drank-choice-text { font-size: 15px; color: #fff; font-weight: 600; }
+        .drank-choice-sub { font-size: 12px; color: rgba(255,255,255,0.5); margin-top: 2px; }
+        .drank-input-wrap { margin-top: 12px; }
+        .drank-input-wrap input {
+            width: 100%; padding: 14px; border-radius: 12px; border: 1px solid rgba(255,20,147,0.3);
+            background: rgba(255,255,255,0.05); color: #fff; font-size: 14px; margin-bottom: 10px; box-sizing: border-box;
+        }
+        .drank-input-wrap input::placeholder { color: rgba(255,255,255,0.4); }
+        .drank-input-wrap input:focus { outline: none; border-color: #ff1493; }
+        .drank-input-btns { display: flex; gap: 8px; }
+        .drank-input-btns button {
+            flex: 1; padding: 12px; border-radius: 12px; border: none; font-size: 14px; font-weight: 600; cursor: pointer;
+        }
+        .drank-confirm-btn { background: #ff1493; color: #fff; }
+        .drank-cancel-btn { background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.6); }
+        .drank-list { max-height: 350px; overflow-y: auto; }
+        .drank-beer-item {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 12px 14px; background: rgba(255,255,255,0.05); border-radius: 12px; margin-bottom: 8px;
+            cursor: pointer; transition: all 0.2s;
+        }
+        .drank-beer-item:hover { background: rgba(255,20,147,0.2); }
+        .drank-beer-name { font-size: 14px; color: #fff; font-weight: 600; }
+        .drank-beer-en { font-size: 11px; color: rgba(255,255,255,0.4); }
+        
+        /* 统计页 */
+        .stats-modal .game-header h2::before { content: '📊 ';; }
+        .stats-stat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 20px; }
+        .stats-stat-card {
+            background: rgba(255,255,255,0.05); border-radius: 16px; padding: 20px;
+            text-align: center; border: 1px solid rgba(255,215,0,0.2);
+        }
+        .stats-stat-num { font-size: 36px; font-weight: 900; color: #ffd700; }
+        .stats-stat-label { font-size: 12px; color: rgba(255,255,255,0.5); margin-top: 6px; }
+        .stats-stat-icon { font-size: 28px; margin-bottom: 8px; }
+        .stats-rank-title { font-size: 13px; color: rgba(255,255,255,0.6); margin-bottom: 12px; font-weight: 600; }
+        .stats-rank-item {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 10px 14px; background: rgba(255,255,255,0.03); border-radius: 10px; margin-bottom: 8px;
+        }
+        .stats-rank-name { font-size: 14px; color: #fff; }
+        .stats-rank-count { font-size: 14px; color: #ffd700; font-weight: 700; }
+        .stats-back {
+            text-align: center; margin-top: 20px; padding: 14px;
+            background: rgba(255,255,255,0.05); border-radius: 12px;
+            color: rgba(255,255,255,0.6); font-size: 14px; cursor: pointer;
+        }
+        .stats-back:hover { background: rgba(255,255,255,0.1); }
+        
+        /* 大转盘 */
+        .wheel-modal .game-content { text-align: center; padding: 20px; }
+        .wheel-container {
+            position: relative; width: 280px; height: 280px; margin: 0 auto 20px;
+        }
+        .wheel-canvas {
+            width: 280px; height: 280px; border-radius: 50%;
+            box-shadow: 0 0 30px rgba(255,20,147,0.3), 0 0 60px rgba(255,20,147,0.1);
+        }
+        .wheel-pointer {
+            position: absolute; top: -10px; left: 50%; transform: translateX(-50%);
+            width: 0; height: 0; border-left: 15px solid transparent; border-right: 15px solid transparent;
+            border-top: 30px solid #ffd700; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+        }
+        .wheel-center {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            width: 50px; height: 50px; background: #ff1493; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 24px; box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+        }
+        .wheel-btn {
+            width: 100%; padding: 16px; border-radius: 16px; border: none;
+            background: linear-gradient(135deg, #ffd700, #ffb700); color: #000;
+            font-size: 18px; font-weight: 900; cursor: pointer;
+        }
+        .wheel-btn:hover { transform: scale(1.02); box-shadow: 0 4px 20px rgba(255,215,0,0.4); }
+        .wheel-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .wheel-result {
+            display: none; margin-top: 16px; padding: 16px;
+            background: rgba(255,255,255,0.05); border-radius: 16px; text-align: center;
+        }
+        .wheel-result.show { display: block; }
+        .wheel-result-name { font-size: 20px; font-weight: 900; color: #ff1493; margin-bottom: 4px; }
+        .wheel-result-en { font-size: 12px; color: rgba(255,255,255,0.5); margin-bottom: 16px; }
+        .wheel-choice-btns { display: flex; gap: 10px; }
+        .wheel-choice-btns button {
+            flex: 1; padding: 12px; border-radius: 12px; border: none;
+            font-size: 14px; font-weight: 700; cursor: pointer;
+        }
+        .wheel-confirm-btn { background: linear-gradient(135deg, #ff1493, #ff69b4); color: #fff; }
+        .wheel-skip-btn { background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.7); }
+        
+        /* 朋友排行榜 */
+        .friend-leaderboard { margin-top: 20px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 16px; }
+        .friend-section-title { font-size: 14px; color: rgba(255,255,255,0.8); margin-bottom: 12px; font-weight: 600; display: flex; align-items: center; gap: 6px; }
+        .friend-item {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 10px 14px; background: rgba(255,255,255,0.03); border-radius: 12px; margin-bottom: 8px;
+        }
+        .friend-item.top1 { background: rgba(255,215,0,0.15); border: 1px solid rgba(255,215,0,0.3); }
+        .friend-item.top2 { background: rgba(192,192,192,0.1); border: 1px solid rgba(192,192,192,0.3); }
+        .friend-item.top3 { background: rgba(205,127,50,0.1); border: 1px solid rgba(205,127,50,0.3); }
+        .friend-rank { font-size: 16px; font-weight: 900; width: 24px; }
+        .friend-item.top1 .friend-rank { color: #ffd700; }
+        .friend-item.top2 .friend-rank { color: #c0c0c0; }
+        .friend-item.top3 .friend-rank { color: #cd7f32; }
+        .friend-name { font-size: 14px; color: #fff; font-weight: 600; }
+        .friend-count { font-size: 18px; font-weight: 900; color: #ff1493; }
+        .friend-tabs { display: flex; gap: 8px; margin-bottom: 16px; }
+        .friend-tab {
+            flex: 1; padding: 10px; border-radius: 10px; border: none;
+            background: rgba(255,255,255,0.05); color: rgba(255,255,255,0.6); font-size: 13px; cursor: pointer;
+        }
+        .friend-tab.active { background: #ff1493; color: #fff; }
+        .my-name-input { margin-top: 16px; }
+        .my-name-input input {
+            width: 100%; padding: 12px; border-radius: 10px; border: 1px solid rgba(255,20,147,0.3);
+            background: rgba(255,255,255,0.05); color: #fff; font-size: 14px; box-sizing: border-box;
+        }
+        .my-name-input input::placeholder { color: rgba(255,255,255,0.4); }
+        .my-name-input input:focus { outline: none; border-color: #ff1493; }
+        .drank-list { max-height: 300px; overflow-y: auto; margin-bottom: 12px; }
+        .drank-beer-item {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 10px 12px; background: rgba(255,255,255,0.05);
+            border-radius: 10px; margin-bottom: 6px; cursor: pointer;
+            transition: all 0.2s;
+        }
+        .drank-beer-item:hover { background: rgba(255,20,147,0.2); }
+        .drank-beer-item.selected { background: rgba(255,20,147,0.3); border: 1px solid #ff1493; }
+        .drank-beer-name { font-size: 14px; color: #fff; font-weight: 600; }
+        .drank-beer-date { font-size: 11px; color: rgba(255,255,255,0.5); }
+        .drank-custom { display: none; }
+        .drank-custom input {
+            width: 100%; padding: 12px; border-radius: 12px; border: 1px solid rgba(255,20,147,0.3);
+            background: rgba(255,255,255,0.05); color: #fff; font-size: 14px; margin-bottom: 8px;
+            box-sizing: border-box;
+        }
+        .drank-custom input::placeholder { color: rgba(255,255,255,0.4); }
+        .drank-submit {
+            width: 100%; padding: 14px; border-radius: 12px; border: none;
+            background: linear-gradient(135deg, #ff1493, #ff69b4); color: #fff;
+            font-size: 15px; font-weight: 700; cursor: pointer; transition: all 0.3s;
+        }
+        .drank-submit:hover { transform: scale(1.02); box-shadow: 0 4px 20px rgba(255,20,147,0.4); }
+        .drank-empty { text-align: center; color: rgba(255,255,255,0.4); padding: 30px; font-size: 13px; }
+        .drank-history { margin-top: 16px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 12px; }
+        .drank-history-title { font-size: 12px; color: rgba(255,255,255,0.5); margin-bottom: 8px; }
+        .drank-history-item { font-size: 12px; color: rgba(255,255,255,0.7); padding: 4px 0; }
+        
+        /* 怪兽游戏 */
+        .monster-game {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f0f23 100%);
+            z-index: 10001;
+            display: none;
             overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
         }
-
-        /* 主内容 */
-        .main-content {
-            padding-top: 56px;
-            padding-bottom: 80px;
-            min-height: 100vh;
+        .monster-game.show { display: block; }
+        .monster-header {
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(0,0,0,0.3);
+            z-index: 10;
         }
-
+        .monster-title {
+            font-size: 18px;
+            font-weight: 900;
+            color: #ff1493;
+        }
+        .monster-close {
+            width: 36px; height: 36px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.1);
+            border: none;
+            color: #fff;
+            font-size: 20px;
+            cursor: pointer;
+        }
+        .monster-score {
+            font-size: 24px;
+            font-weight: 900;
+            color: #ffd700;
+        }
+        .monster-field {
+            position: absolute;
+            top: 80px;
+            left: 0;
+            right: 0;
+            bottom: 120px;
+            overflow: hidden;
+        }
+        .monster-item {
+            position: absolute;
+            font-size: 50px;
+            cursor: pointer;
+            animation: monsterPop 0.3s ease-out;
+            transition: transform 0.1s;
+            user-select: none;
+        }
+        .monster-item:hover { transform: scale(1.2); }
+        .monster-item:active { transform: scale(0.8); }
+        @keyframes monsterPop {
+            0% { transform: scale(0) rotate(-20deg); opacity: 0; }
+            50% { transform: scale(1.2) rotate(10deg); }
+            100% { transform: scale(1) rotate(0deg); opacity: 1; }
+        }
+        @keyframes monsterShake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px) rotate(-5deg); }
+            75% { transform: translateX(5px) rotate(5deg); }
+        }
+        .monster-item.hit {
+            animation: monsterHit 0.3s ease-out forwards;
+        }
+        @keyframes monsterHit {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.5) rotate(180deg); }
+            100% { transform: scale(0); opacity: 0; }
+        }
+        .monster-bottle {
+            position: absolute;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 60px;
+            transition: all 0.3s;
+        }
+        .monster-bottle.shake {
+            animation: monsterShake 0.1s infinite;
+        }
+        .monster-bottle.explode {
+            animation: bottleExplode 0.5s ease-out forwards;
+        }
+        @keyframes bottleExplode {
+            0% { transform: translateX(-50%) scale(1); }
+            50% { transform: translateX(-50%) scale(1.5); filter: brightness(2); }
+            100% { transform: translateX(-50%) scale(0); opacity: 0; }
+        }
+        .monster-start-overlay {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.8);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 20;
+        }
+        .monster-start-overlay.hide { display: none; }
+        .monster-start-title {
+            font-size: 28px;
+            font-weight: 900;
+            color: #ff1493;
+            margin-bottom: 16px;
+        }
+        .monster-start-desc {
+            font-size: 14px;
+            color: rgba(255,255,255,0.7);
+            margin-bottom: 30px;
+            text-align: center;
+            line-height: 1.6;
+        }
+        .monster-start-btn {
+            padding: 16px 40px;
+            border-radius: 25px;
+            background: linear-gradient(135deg, #ff1493, #ff69b4);
+            border: none;
+            color: #fff;
+            font-size: 18px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+        .monster-explode-overlay {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.9);
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 30;
+        }
+        .monster-explode-overlay.show { display: flex; }
+        .monster-explode-icon {
+            font-size: 120px;
+            animation: explodeIcon 0.5s ease-out;
+        }
+        @keyframes explodeIcon {
+            0% { transform: scale(0) rotate(-180deg); }
+            60% { transform: scale(1.3) rotate(20deg); }
+            100% { transform: scale(1) rotate(0deg); }
+        }
+        .monster-explode-text {
+            font-size: 36px;
+            font-weight: 900;
+            color: #ffd700;
+            margin: 20px 0;
+            animation: textPulse 0.5s ease-out 0.3s both;
+        }
+        @keyframes textPulse {
+            0% { transform: scale(0); opacity: 0; }
+            60% { transform: scale(1.2); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .monster-explode-btn {
+            padding: 16px 40px;
+            border-radius: 25px;
+            background: linear-gradient(135deg, #ff1493, #ff69b4);
+            border: none;
+            color: #fff;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        
+        /* MBTI */
+        .mbti-intro { text-align: center; color: rgba(255,255,255,0.6); margin-bottom: 12px; font-size: 14px; }
+        .mbti-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 16px; }
+        .mbti-item {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,215,0,0.3);
+            border-radius: 12px;
+            padding: 12px 8px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .mbti-item:hover { background: rgba(255,215,0,0.1); border-color: #ffd700; transform: scale(1.03); }
+        .mbti-type { font-size: 20px; font-weight: 900; color: #ffd700; margin-bottom: 4px; }
+        .mbti-name { font-size: 12px; color: rgba(255,255,255,0.7); }
+        .mbti-result {
+            background: rgba(255,215,0,0.1);
+            border: 1px solid rgba(255,215,0,0.3);
+            border-radius: 16px;
+            padding: 20px;
+            text-align: center;
+        }
+        .mbti-result-type { font-size: 24px; font-weight: 900; color: #ffd700; margin-bottom: 4px; }
+        .mbti-result-name { font-size: 16px; color: #fff; margin-bottom: 8px; }
+        .mbti-result-beer { font-size: 14px; color: #ff1493; font-weight: 600; margin-bottom: 8px; }
+        .mbti-result-desc { font-size: 12px; color: rgba(255,255,255,0.7); line-height: 1.5; }
+        
         /* 底部导航 */
         .bottom-nav {
             position: fixed;
             bottom: 0;
             left: 0;
             right: 0;
-            height: 70px;
+            height: 80px;
             background: rgba(10,10,10,0.95);
-            backdrop-filter: blur(10px);
+            backdrop-filter: blur(20px);
             display: flex;
-            justify-content: space-around;
+            justify-content: center;
             align-items: center;
-            border-top: 1px solid rgba(255,255,255,0.05);
+            gap: 15px;
+            padding: 0 20px;
+            border-top: 1px solid rgba(255,20,147,0.2);
             z-index: 100;
-            padding-bottom: env(safe-area-inset-bottom, 0);
         }
         .nav-btn {
             display: flex;
-            flex-direction: column;
             align-items: center;
-            gap: 4px;
-            padding: 8px 16px;
-            background: none;
+            gap: 8px;
+            padding: 14px 28px;
+            border-radius: 25px;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
             border: none;
-            color: rgba(255,255,255,0.5);
-            cursor: pointer;
-            transition: all 0.2s;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
         }
-        .nav-btn .icon { font-size: 22px; }
-        .nav-btn span { font-size: 10px; }
-        .nav-btn.active { color: #ff1493; }
-        .nav-btn.primary { color: #fff; }
-        .nav-btn.accent { color: #ff69b4; }
-
-        /* 页面容器 */
-        .page {
-            display: none;
-            padding: 16px;
-            padding-top: 72px;
-        }
-        .page.active { display: block; }
-
-        /* 首页 */
-        .hero-section {
-            text-align: center;
-            padding: 40px 0;
-        }
-        .hero-section h2 {
-            font-size: 28px;
-            margin-bottom: 8px;
-        }
-        .hero-section p {
-            color: rgba(255,255,255,0.5);
-            font-size: 14px;
-        }
-
-        /* 卡片网格 */
-        .card-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 12px;
-            margin-top: 20px;
-        }
-        .card {
-            background: rgba(255,255,255,0.03);
-            border: 1px solid rgba(255,255,255,0.05);
-            border-radius: 16px;
-            padding: 20px 16px;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-        .card:hover {
-            background: rgba(255,255,255,0.06);
-            transform: translateY(-2px);
-        }
-        .card .icon { font-size: 32px; margin-bottom: 8px; }
-        .card h3 { font-size: 15px; margin-bottom: 4px; }
-        .card p { font-size: 11px; color: rgba(255,255,255,0.4); }
-
-        /* 啤酒列表 */
-        .beer-list {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 12px;
-        }
-        .beer-card {
-            background: rgba(255,255,255,0.03);
-            border: 1px solid rgba(255,255,255,0.05);
-            border-radius: 16px;
-            overflow: hidden;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-        .beer-card:hover {
-            transform: scale(1.02);
-        }
-        .beer-card .beer-icon {
-            font-size: 48px;
-            text-align: center;
-            padding: 24px 0 16px;
-            background: rgba(255,20,147,0.05);
-        }
-        .beer-card .beer-info {
-            padding: 12px;
-        }
-        .beer-card .beer-name {
-            font-size: 14px;
-            font-weight: 600;
-            margin-bottom: 4px;
-        }
-        .beer-card .beer-tag {
-            font-size: 11px;
-            color: #ff1493;
-        }
-        .beer-card .beer-abv {
-            font-size: 11px;
-            color: rgba(255,255,255,0.4);
-            margin-top: 4px;
-        }
-
-        /* 模态框 */
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0,0,0,0.8);
-            z-index: 200;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-        }
-        .modal.active { display: flex; }
-        .modal-content {
-            background: #1a1a1a;
-            border-radius: 24px;
-            width: 100%;
-            max-width: 400px;
-            max-height: 80vh;
-            overflow-y: auto;
-            padding: 24px;
-            position: relative;
-        }
-        .modal-close {
-            position: absolute;
-            top: 16px;
-            right: 16px;
-            width: 32px;
-            height: 32px;
-            background: rgba(255,255,255,0.1);
-            border: none;
-            border-radius: 50%;
-            color: #fff;
-            cursor: pointer;
-            font-size: 18px;
-        }
-
-        /* 转盘 */
-        .wheel-container {
-            text-align: center;
-            padding: 20px 0;
-        }
-        .wheel {
-            width: 280px;
-            height: 280px;
-            margin: 0 auto 20px;
-            position: relative;
-        }
-        .wheel-canvas {
-            width: 100%;
-            height: 100%;
-            border-radius: 50%;
-            box-shadow: 0 0 40px rgba(255,20,147,0.3);
-        }
-        .wheel-pointer {
-            position: absolute;
-            top: -10px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 0;
-            height: 0;
-            border-left: 15px solid transparent;
-            border-right: 15px solid transparent;
-            border-top: 30px solid #ff1493;
-            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
-        }
-        .wheel-btn {
+        .nav-btn.primary {
             background: linear-gradient(135deg, #ff1493, #ff69b4);
             color: #fff;
-            border: none;
-            padding: 16px 48px;
-            border-radius: 30px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            box-shadow: 0 4px 20px rgba(255,20,147,0.4);
+            box-shadow: 0 4px 30px rgba(255,20,147,0.4);
         }
-        .wheel-btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-
-        /* 游戏 */
-        .game-area {
-            width: 100%;
-            height: 400px;
-            background: rgba(255,255,255,0.02);
-            border-radius: 20px;
-            position: relative;
-            overflow: hidden;
-            margin: 16px 0;
-        }
-        .monster {
-            position: absolute;
-            font-size: 48px;
-            cursor: pointer;
-            animation: bounce 0.5s ease-in-out infinite;
-            transition: transform 0.1s;
-        }
-        .monster:active { transform: scale(1.2); }
-        .monster.hit { animation: explode 0.3s forwards; }
-        @keyframes bounce {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-10px); }
-        }
-        @keyframes explode {
-            0% { transform: scale(1); opacity: 1; }
-            50% { transform: scale(1.5); }
-            100% { transform: scale(0); opacity: 0; }
-        }
-        .bottle-explode {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            font-size: 120px;
-            animation: bottleExplode 1s forwards;
-        }
-        @keyframes bottleExplode {
-            0% { transform: translate(-50%, -50%) scale(1); }
-            50% { transform: translate(-50%, -50%) scale(2); }
-            100% { transform: translate(-50%, -50%) scale(0); opacity: 0; }
-        }
-
-        /* 用户菜单 */
-        .user-menu {
-            position: absolute;
-            top: 60px;
-            right: 16px;
-            background: #1a1a1a;
-            border-radius: 16px;
-            padding: 8px;
-            min-width: 180px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
-            display: none;
-        }
-        .user-menu.active { display: block; }
-        .user-menu-item {
-            padding: 12px 16px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 14px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        .user-menu-item:hover { background: rgba(255,255,255,0.05); }
-        .user-menu-item.danger { color: #ff4444; }
-
-        /* Toast */
-        .toast {
-            position: fixed;
-            bottom: 100px;
-            left: 50%;
-            transform: translateX(-50%) translateY(100px);
-            background: #333;
-            color: #fff;
-            padding: 12px 24px;
-            border-radius: 30px;
-            font-size: 14px;
-            opacity: 0;
-            transition: all 0.3s;
-            z-index: 300;
-        }
-        .toast.show {
-            transform: translateX(-50%) translateY(0);
-            opacity: 1;
-        }
-
-        /* 心情标签 */
-        .mood-tags {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            margin: 16px 0;
-        }
-        .mood-tag {
-            padding: 10px 16px;
+        .nav-btn.secondary {
             background: rgba(255,255,255,0.05);
-            border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 20px;
-            font-size: 14px;
-            cursor: pointer;
-            transition: all 0.2s;
+            color: #fff;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+            border: 1px solid rgba(255,20,147,0.3);
         }
-        .mood-tag:hover, .mood-tag.selected {
-            background: rgba(255,20,147,0.2);
+        .nav-btn.secondary:hover {
+            background: rgba(255,20,147,0.1);
             border-color: #ff1493;
         }
-
-        /* 记录列表 */
-        .record-list {
-            margin-top: 16px;
+        .nav-btn.accent {
+            background: linear-gradient(135deg, #1a1a2e, #16213e);
+            color: #ffd700;
+            box-shadow: 0 4px 30px rgba(255,215,0,0.2);
+            border: 1px solid rgba(255,215,0,0.3);
         }
-        .record-item {
-            background: rgba(255,255,255,0.03);
-            border-radius: 12px;
-            padding: 16px;
-            margin-bottom: 12px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+        .nav-btn.accent:hover {
+            background: linear-gradient(135deg, #16213e, #1a1a2e);
+            border-color: #ffd700;
+            box-shadow: 0 4px 30px rgba(255,215,0,0.4);
         }
-        .record-item .beer { font-size: 14px; font-weight: 600; }
-        .record-item .date { font-size: 11px; color: rgba(255,255,255,0.4); margin-top: 4px; }
-        .record-item .rating { font-size: 16px; }
+        .nav-btn .icon {
+            font-size: 18px;
+        }
+        .nav-btn:hover {
+            transform: scale(1.05);
+        }
+        
+        /* 精酿图鉴标签 */
+        .nav-badge {
+            position: fixed;
+            bottom: 90px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(255,255,255,0.9);
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+            color: #ff6b6b;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            z-index: 100;
+        }
+        
+        .hint {
+            position: fixed;
+            bottom: 185px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: rgba(255,255,255,0.6);
+            font-size: 12px;
+            text-shadow: 0 1px 3px rgba(0,0,0,0.5);
+        }
     </style>
 </head>
 <body>
-
-<!-- 登录页面 -->
-<div class="login-screen" id="loginScreen">
-    <div class="login-box">
-        <h1><span>BEER</span><span>LAB</span></h1>
-        <p class="subtitle">🍺 精酿啤酒社交</p>
-        
-        <div id="loginForm">
-            <div class="form-group">
-                <label>邮箱</label>
-                <input type="email" id="loginEmail" placeholder="your@email.com">
-            </div>
-            <div class="form-group">
-                <label>密码</label>
-                <input type="password" id="loginPassword" placeholder="••••••••">
-            </div>
-            <button class="btn btn-primary" onclick="handleLogin()">登录</button>
-            <div class="error-msg" id="loginError"></div>
-            <div class="login-switch">
-                没有账号？<a onclick="showRegister()">立即注册</a>
-            </div>
-            <div class="guest-link">
-                <a onclick="guestLogin()">游客模式（不保存数据）</a>
-            </div>
-        </div>
-
-        <div id="registerForm" style="display:none;">
-            <div class="form-group">
-                <label>用户名</label>
-                <input type="text" id="regUsername" placeholder="你的昵称">
-            </div>
-            <div class="form-group">
-                <label>邮箱</label>
-                <input type="email" id="regEmail" placeholder="your@email.com">
-            </div>
-            <div class="form-group">
-                <label>密码</label>
-                <input type="password" id="regPassword" placeholder="至少6位">
-            </div>
-            <button class="btn btn-primary" onclick="handleRegister()">注册</button>
-            <div class="error-msg" id="regError"></div>
-            <div class="login-switch">
-                已有账号？<a onclick="showLogin()">去登录</a>
-            </div>
-        </div>
+    <!-- 大背景啤酒杯 -->
+    <div class="bg-beer">🍺</div>
+    
+    <!-- 精酿装饰元素 -->
+    <div class="deco deco-1">🍺</div>
+    <div class="deco deco-2">🍻</div>
+    <div class="deco deco-3">🛢️</div>
+    <div class="deco deco-4">🍻</div>
+    <div class="deco deco-5">🍺</div>
+    <div class="deco deco-6">🛢️</div>
+    <div class="deco deco-7">🍻</div>
+    <div class="deco deco-8">🍺</div>
+    
+    <!-- 中心标题 -->
+    <div class="header">
+        <h1><span>夯</span><span>啤</span></h1>
+        <div class="subtitle">BEER LAB &nbsp;🍺&nbsp;精酿图鉴</div>
     </div>
-</div>
-
-<!-- 主应用 -->
-<div class="app-screen" id="appScreen">
-    <!-- 顶部导航 -->
-    <nav class="top-nav">
-        <div class="logo"><span>BEER</span><span>LAB</span></div>
-        <div class="user-info" onclick="toggleUserMenu()">
-            <div class="user-avatar" id="userAvatar">?</div>
-            <span class="user-name" id="userName">用户</span>
-        </div>
-    </nav>
-
-    <!-- 用户菜单 -->
-    <div class="user-menu" id="userMenu">
-        <div class="user-menu-item" onclick="showInviteCode()">📎 邀请码</div>
-        <div class="user-menu-item" onclick="showFriends()">👥 好友列表</div>
-        <div class="user-menu-item danger" onclick="handleLogout()">🚪 退出登录</div>
+    
+    <!-- 坐标轴 -->
+    <div class="axis-h"></div>
+    <div class="axis-v"></div>
+    
+    <!-- 轴标签 -->
+    <div class="axis-label x-left">清爽/低度</div>
+    <div class="axis-label x-right">浓郁/高度</div>
+    <div class="axis-label y-top">果香/花香</div>
+    <div class="axis-label y-bottom">烘焙/焦香</div>
+    
+    <!-- 主内容 -->
+    <div class="main-content">
+        <svg id="network"></svg>
     </div>
-
-    <!-- 首页 -->
-    <div class="page active" id="pageHome">
-        <div class="hero-section">
-            <h2>🍺 今天喝什么？</h2>
-            <p>精酿啤酒，等你来探索</p>
-        </div>
-        
-        <div class="card-grid">
-            <div class="card" onclick="showPage('pageBeers')">
-                <div class="icon">🍻</div>
-                <h3>全部酒款</h3>
-                <p>浏览全部精酿</p>
-            </div>
-            <div class="card" onclick="openMoodPicker()">
-                <div class="icon">🎭</div>
-                <h3>按心情挑酒</h3>
-                <p>心情决定酒款</p>
-            </div>
-            <div class="card" onclick="openWheel()">
-                <div class="icon">🎰</div>
-                <h3>今天喝啥</h3>
-                <p>转盘决定</p>
-            </div>
-            <div class="card" onclick="openGames()">
-                <div class="icon">🎮</div>
-                <h3>游戏中心</h3>
-                <p>边玩边喝</p>
-            </div>
-            <div class="card" onclick="openDrankModal()">
-                <div class="icon">📝</div>
-                <h3>饮酒记录</h3>
-                <p>记录今天喝的</p>
-            </div>
-            <div class="card" onclick="openCollection()">
-                <div class="icon">⭐</div>
-                <h3>我的收藏</h3>
-                <p>喜欢的酒款</p>
-            </div>
-        </div>
-    </div>
-
-    <!-- 酒款页面 -->
-    <div class="page" id="pageBeers">
-        <h2 style="margin-bottom:16px">🍻 全部酒款</h2>
-        <div class="beer-list" id="beerList">
-            <!-- 动态加载 -->
-        </div>
-    </div>
-
+    
     <!-- 底部导航 -->
-    <nav class="bottom-nav">
-        <button class="nav-btn active" onclick="showPage('pageHome')">
-            <span class="icon">🏠</span>
-            <span>首页</span>
+    <div class="bottom-nav">
+        <button class="nav-btn secondary" onclick="openMoodPicker()">
+            <span class="icon">🎭</span>
+            <span>今天喝什么</span>
         </button>
-        <button class="nav-btn" onclick="showPage('pageBeers')">
-            <span class="icon">🍻</span>
-            <span>酒款</span>
-        </button>
-        <button class="nav-btn accent" onclick="openWheel()">
-            <span class="icon">🎰</span>
-            <span>今天喝啥</span>
-        </button>
-        <button class="nav-btn" onclick="openGames()">
+        <button class="nav-btn accent" onclick="openGames()">
             <span class="icon">🎮</span>
-            <span>游戏</span>
+            <span>PLAY GAME</span>
         </button>
-        <button class="nav-btn primary" onclick="openDrankModal()">
-            <span class="icon">📝</span>
-            <span>记录</span>
+        <button class="nav-btn primary" onclick="openDrankModalWithAuth()">
+            <span class="icon">🍻</span>
+            <span>今天喝了吗</span>
         </button>
-    </nav>
-</div>
-
-<!-- 转盘模态框 -->
-<div class="modal" id="wheelModal">
-    <div class="modal-content">
-        <button class="modal-close" onclick="closeWheel()">×</button>
-        <h2 style="text-align:center;margin-bottom:20px">🎰 转一转</h2>
-        <div class="wheel-container">
-            <div class="wheel">
+    </div>
+    
+    <div class="hint">拖拽啤酒球，选择今日饮品</div>
+    
+    <!-- 跟随节点的 tooltip (置顶) -->
+    <div id="tipContainer" class="tip-container" style="display:none;">
+        <div class="tip-card">
+            <div class="tip-header">
+                <div class="tip-color" id="tipColor"></div>
+                <div class="tip-info">
+                    <div class="tip-name" id="tipName"></div>
+                    <div class="tip-en" id="tipEn"></div>
+                </div>
+                <div class="tip-abv" id="tipAbv"></div>
+            </div>
+            <div class="tip-style" id="tipStyle"></div>
+            <div class="tip-glossary-title">术语解读</div>
+            <div class="tip-glossary" id="tipGlossary"></div>
+            <div class="tip-brand" id="tipBrand"></div>
+            <div class="tip-tags" id="tipTags"></div>
+        </div>
+    </div>
+    
+    <!-- 游戏中心 -->
+    <div id="gameModal" class="game-modal">
+        <div class="game-content">
+            <div class="game-header">
+                <h2>🎮 游戏中心</h2>
+                <button class="game-close" onclick="closeGames()">×</button>
+            </div>
+            <div class="game-list">
+                <div class="game-item" onclick="openMonsterGame()">
+                    <div class="game-icon">👾</div>
+                    <div class="game-title">炸裂小怪兽</div>
+                    <div class="game-desc">点击消灭小怪兽，爆炸就喝酒</div>
+                </div>
+                <div class="game-item" onclick="askWhatToDrink()">
+                    <div class="game-icon">🎰</div>
+                    <div class="game-title">今天喝什么</div>
+                    <div class="game-desc">转盘随机挑一杯</div>
+                </div>
+                <div class="game-item" onclick="openMakeBeer()">
+                    <div class="game-icon">🍺</div>
+                    <div class="game-title">MAKE A BEER</div>
+                    <div class="game-desc">调出你的专属精酿</div>
+                </div>
+                <div class="game-item" onclick="openMoodPicker()">
+                    <div class="game-icon">🎭</div>
+                    <div class="game-title">按心情挑酒</div>
+                    <div class="game-desc">此刻的心情，喝什么？</div>
+                </div>
+                <div class="game-item" onclick="openMBTI()">
+                    <div class="game-icon">🧠</div>
+                    <div class="game-title">按MBTI喝酒</div>
+                    <div class="game-desc">你是哪种酒鬼？</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 调酒游戏 -->
+    <div id="makeBeerModal" class="game-modal">
+        <div class="game-content make-beer">
+            <div class="game-header">
+                <h2>🍺 调酒大师</h2>
+                <button class="game-close" onclick="closeMakeBeer()">×</button>
+            </div>
+            <div class="brew-steps">
+                <div class="brew-step">
+                    <div class="brew-label">STEP 1: 基酒</div>
+                    <div class="brew-options" id="brewBase">
+                        <div class="brew-opt selected" data-val="lager" onclick="selectBrew(this, 'base')">拉格</div>
+                        <div class="brew-opt" data-val="ale" onclick="selectBrew(this, 'base')">艾尔</div>
+                        <div class="brew-opt" data-val="sour" onclick="selectBrew(this, 'base')">酸啤</div>
+                        <div class="brew-opt" data-val="cider" onclick="selectBrew(this, 'base')">西打</div>
+                    </div>
+                </div>
+                <div class="brew-step">
+                    <div class="brew-label">STEP 2: 风格</div>
+                    <div class="brew-options" id="brewStyle">
+                        <div class="brew-opt selected" data-val="light" onclick="selectBrew(this, 'style')">清爽</div>
+                        <div class="brew-opt" data-val="hoppy" onclick="selectBrew(this, 'style')">酒花香</div>
+                        <div class="brew-opt" data-val="fruity" onclick="selectBrew(this, 'style')">果香</div>
+                        <div class="brew-opt" data-val="roasty" onclick="selectBrew(this, 'style')">烘焙</div>
+                    </div>
+                </div>
+                <div class="brew-step">
+                    <div class="brew-label">STEP 3: 加料</div>
+                    <div class="brew-options" id="brewAdd">
+                        <div class="brew-opt selected" data-val="none" onclick="selectBrew(this, 'add')">无</div>
+                        <div class="brew-opt" data-val="hops" onclick="selectBrew(this, 'add')">酒花</div>
+                        <div class="brew-opt" data-val="fruit" onclick="selectBrew(this, 'add')">水果</div>
+                        <div class="brew-opt" data-val="coffee" onclick="selectBrew(this, 'add')">咖啡</div>
+                    </div>
+                </div>
+            </div>
+            <div class="brew-result">
+                <div class="brew-preview" id="brewPreview"></div>
+                <div class="brew-name" id="brewName">你的精酿</div>
+                <div class="brew-desc" id="brewDesc">选择配料开始调配</div>
+            </div>
+            <button class="brew-btn" onclick="brewBeer()">开始酿造</button>
+        </div>
+    </div>
+    
+    <!-- 大转盘 -->
+    <div id="rollModal" class="game-modal wheel-modal">
+        <div class="game-content">
+            <div class="game-header">
+                <h2>🎰 今天喝什么</h2>
+                <button class="game-close" onclick="closeRoll()">×</button>
+            </div>
+            <div class="wheel-container">
                 <div class="wheel-pointer"></div>
-                <canvas class="wheel-canvas" id="wheelCanvas" width="280" height="280"></canvas>
+                <canvas id="wheelCanvas" class="wheel-canvas" width="280" height="280"></canvas>
+                <div class="wheel-center">🍺</div>
             </div>
-            <button class="wheel-btn" id="wheelBtn" onclick="spinWheel()">开始转动</button>
-        </div>
-        <div id="wheelResult" style="text-align:center;margin-top:20px;display:none;">
-            <div style="font-size:48px;margin-bottom:8px" id="wheelResultEmoji">🍺</div>
-            <div style="font-size:18px;font-weight:600" id="wheelResultName">酒名</div>
-        </div>
-    </div>
-</div>
-
-<!-- 心情挑酒模态框 -->
-<div class="modal" id="moodModal">
-    <div class="modal-content">
-        <button class="modal-close" onclick="closeMood()">×</button>
-        <h2 style="text-align:center">🎭 你现在的心情是？</h2>
-        <div class="mood-tags" id="moodTags">
-            <div class="mood-tag" data-mood="happy">😊 开心</div>
-            <div class="mood-tag" data-mood="sad">😢 难过</div>
-            <div class="mood-tag" data-mood="stressed">😤 压力大</div>
-            <div class="mood-tag" data-mood="relaxed">😌 放松</div>
-            <div class="mood-tag" data-mood="excited">🤩 兴奋</div>
-            <div class="mood-tag" data-mood="tired">😫 疲惫</div>
-            <div class="mood-tag" data-mood="romantic">💕 浪漫</div>
-            <div class="mood-tag" data-mood="social">🥂 社交</div>
-        </div>
-        <div id="moodResult" style="text-align:center;margin-top:20px;display:none;">
-            <div style="font-size:64px;margin-bottom:8px" id="moodResultIcon">🍺</div>
-            <div style="font-size:20px;font-weight:600;margin-bottom:8px" id="moodResultName">酒名</div>
-            <div style="color:rgba(255,255,255,0.5);font-size:14px;margin-bottom:16px" id="moodResultDesc">描述</div>
-            <button class="btn btn-secondary" onclick="skipMoodBeer()">换一个 🔄</button>
-            <span style="margin-left:8px;color:rgba(255,255,255,0.3);font-size:12px" id="skipCount"></span>
+            <button class="wheel-btn" id="rollBtn" onclick="startWheel()">🎲 转一下</button>
+            <div class="wheel-result" id="wheelResult">
+                <div class="wheel-result-name" id="wheelResultName"></div>
+                <div class="wheel-result-en" id="wheelResultEn"></div>
+                <div class="wheel-choice-btns">
+                    <button class="wheel-skip-btn" onclick="skipToAnother()">换一杯</button>
+                    <button class="wheel-confirm-btn" onclick="confirmThisBeer()">就是这杯了</button>
+                </div>
+            </div>
         </div>
     </div>
-</div>
-
-<!-- 游戏模态框 -->
-<div class="modal" id="gameModal">
-    <div class="modal-content">
-        <button class="modal-close" onclick="closeGame()">×</button>
-        <h2 style="text-align:center;margin-bottom:20px">🎮 游戏中心</h2>
+    
+    <!-- 心情挑酒 -->
+    <div id="moodModal" class="game-modal">
+        <div class="game-content">
+            <div class="game-header">
+                <h2>🎭 按心情挑酒</h2>
+                <button class="game-close" onclick="closeMoodPicker()">×</button>
+            </div>
+            <div class="mood-grid">
+                <div class="mood-item" onclick="selectMood('happy')">
+                    <div class="mood-icon">😄</div>
+                    <div class="mood-text">开心嗨皮</div>
+                </div>
+                <div class="mood-item" onclick="selectMood('stressed')">
+                    <div class="mood-icon">😰</div>
+                    <div class="mood-text">压力山大</div>
+                </div>
+                <div class="mood-item" onclick="selectMood('sad')">
+                    <div class="mood-icon">😢</div>
+                    <div class="mood-text">心情低落</div>
+                </div>
+                <div class="mood-item" onclick="selectMood('chill')">
+                    <div class="mood-icon">😌</div>
+                    <div class="mood-text">放松慵懒</div>
+                </div>
+                <div class="mood-item" onclick="selectMood('social')">
+                    <div class="mood-icon">🥳</div>
+                    <div class="mood-text">社交聚会</div>
+                </div>
+                <div class="mood-item" onclick="selectMood('alone')">
+                    <div class="mood-icon">🌙</div>
+                    <div class="mood-text">独处时光</div>
+                </div>
+            </div>
+            <div class="mood-result" id="moodResult" style="display:none;"></div>
+        </div>
+    </div>
+    
+    <!-- 今天喝了吗 -->
+    <div id="drankModal" class="game-modal">
+        <div class="game-content">
+            <div class="game-header">
+                <h2>🍻 今天喝了吗</h2>
+                <button class="game-close" onclick="closeDrank()">×</button>
+            </div>
+            <div id="drankChoiceView">
+                <div class="drank-choices">
+                    <div class="drank-choice" onclick="showBeerList()">
+                        <div class="drank-choice-icon">🍺</div>
+                        <div><div class="drank-choice-text">从酒单选</div><div class="drank-choice-sub">选今天喝的是哪款</div></div>
+                    </div>
+                    <div class="drank-choice" onclick="showCustomInput()">
+                        <div class="drank-choice-icon">✏️</div>
+                        <div><div class="drank-choice-text">手动添加</div><div class="drank-choice-sub">输入酒名记录</div></div>
+                    </div>
+                    <div class="drank-choice" onclick="noDrinkToday()">
+                        <div class="drank-choice-icon">🚫</div>
+                        <div><div class="drank-choice-text">今天不喝</div><div class="drank-choice-sub">跳过，直接看统计</div></div>
+                    </div>
+                </div>
+            </div>
+            <div id="drankBeerListView" style="display:none;">
+                <div class="drank-list" id="drankList"></div>
+                <div class="drank-input-btns" style="margin-top:12px;">
+                    <button class="drank-cancel-btn" onclick="backToChoice()">返回</button>
+                </div>
+            </div>
+            <div id="drankCustomView" style="display:none;">
+                <div class="drank-input-wrap">
+                    <input type="text" id="customBeerInput" placeholder="输入酒名...">
+                    <div class="drank-input-btns">
+                        <button class="drank-cancel-btn" onclick="backToChoice()">取消</button>
+                        <button class="drank-confirm-btn" onclick="confirmCustomDrink()">记一杯</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 统计页 -->
+    <div id="statsModal" class="game-modal stats-modal">
+        <div class="game-content">
+            <div class="game-header">
+                <h2>饮酒统计</h2>
+                <button class="game-close" onclick="closeStats()">×</button>
+            </div>
+            <div class="friend-tabs">
+                <button class="friend-tab" onclick="switchFriendTab('personal')">我的统计</button>
+                <button class="friend-tab active" onclick="switchFriendTab('leaderboard')">朋友排行</button>
+            </div>
+            <div id="personalStats">
+                <div class="stats-stat-grid">
+                    <div class="stats-stat-card"><div class="stats-stat-icon">📅</div><div class="stats-stat-num" id="statsToday">0</div><div class="stats-stat-label">今日</div></div>
+                    <div class="stats-stat-card"><div class="stats-stat-icon">🗓️</div><div class="stats-stat-num" id="statsMonth">0</div><div class="stats-stat-label">本月</div></div>
+                    <div class="stats-stat-card"><div class="stats-stat-icon">📆</div><div class="stats-stat-num" id="statsYear">0</div><div class="stats-stat-label">本年</div></div>
+                </div>
+                <div class="stats-rank-title">我的酒王榜</div>
+                <div id="statsRankList"></div>
+                <div class="my-name-input">
+                    <input type="text" id="myNameInput" placeholder="设置我的名字..." onchange="saveMyName()">
+                </div>
+            </div>
+            <div id="leaderboardStats" style="display:none;">
+                <div class="friend-leaderboard">
+                    <div class="friend-section-title">🏆 朋友酒量排行榜</div>
+                    <div id="friendLeaderboard"></div>
+                </div>
+                <div class="stats-back" style="margin-top:16px;" onclick="closeStats()">返回首页</div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- MBTI喝酒 -->
+    <div id="mbtiModal" class="game-modal">
+        <div class="game-content">
+            <div class="game-header">
+                <h2>🧠 按MBTI喝酒</h2>
+                <button class="game-close" onclick="closeMBTI()">×</button>
+            </div>
+            <div class="mbti-intro">16型人格，你是哪种酒鬼？</div>
+            <div class="mbti-grid">
+                <div class="mbti-item" onclick="selectMBTI('INTJ')"><div class="mbti-type">INTJ</div><div class="mbti-name">策划大师</div></div>
+                <div class="mbti-item" onclick="selectMBTI('INTP')"><div class="mbti-type">INTP</div><div class="mbti-name">逻辑学家</div></div>
+                <div class="mbti-item" onclick="selectMBTI('ENTJ')"><div class="mbti-type">ENTJ</div><div class="mbti-name">指挥官</div></div>
+                <div class="mbti-item" onclick="selectMBTI('ENTP')"><div class="mbti-type">ENTP</div><div class="mbti-name">辩论家</div></div>
+                <div class="mbti-item" onclick="selectMBTI('INFJ')"><div class="mbti-type">INFJ</div><div class="mbti-name">理想主义者</div></div>
+                <div class="mbti-item" onclick="selectMBTI('INFP')"><div class="mbti-type">INFP</div><div class="mbti-name">调停者</div></div>
+                <div class="mbti-item" onclick="selectMBTI('ENFJ')"><div class="mbti-type">ENFJ</div><div class="mbti-name">主人公</div></div>
+                <div class="mbti-item" onclick="selectMBTI('ENFP')"><div class="mbti-type">ENFP</div><div class="mbti-name">社交达人</div></div>
+                <div class="mbti-item" onclick="selectMBTI('ISTJ')"><div class="mbti-type">ISTJ</div><div class="mbti-name">物流师</div></div>
+                <div class="mbti-item" onclick="selectMBTI('ISFJ')"><div class="mbti-type">ISFJ</div><div class="mbti-name">守护者</div></div>
+                <div class="mbti-item" onclick="selectMBTI('ESTJ')"><div class="mbti-type">ESTJ</div><div class="mbti-name">总经理</div></div>
+                <div class="mbti-item" onclick="selectMBTI('ESFJ')"><div class="mbti-type">ESFJ</div><div class="mbti-name">派对国王</div></div>
+                <div class="mbti-item" onclick="selectMBTI('ISTP')"><div class="mbti-type">ISTP</div><div class="mbti-name">精酿老炮</div></div>
+                <div class="mbti-item" onclick="selectMBTI('ISFP')"><div class="mbti-type">ISFP</div><div class="mbti-name">探险家</div></div>
+                <div class="mbti-item" onclick="selectMBTI('ESTP')"><div class="mbti-type">ESTP</div><div class="mbti-name">企业家</div></div>
+                <div class="mbti-item" onclick="selectMBTI('ESFP')"><div class="mbti-type">ESFP</div><div class="mbti-name">表演者</div></div>
+            </div>
+            <div class="mbti-result" id="mbtiResult" style="display:none;"></div>
+        </div>
+    </div>
+    
+    <!-- 炸裂小怪兽游戏 -->
+    <div id="monsterGame" class="monster-game">
+        <div class="monster-header">
+            <div class="monster-title">👾 炸裂小怪兽</div>
+            <div class="monster-score">得分: <span id="monsterScore">0</span></div>
+            <button class="monster-close" onclick="closeMonsterGame()">×</button>
+        </div>
+        <div class="monster-field" id="monsterField"></div>
+        <div class="monster-bottle" id="monsterBottle">🍺</div>
         
-        <div class="card-grid" style="grid-template-columns:repeat(2,1fr);">
-            <div class="card" onclick="startMonsterGame()">
-                <div class="icon">👾</div>
-                <h3>炸裂小怪兽</h3>
-                <p>随机爆炸</p>
+        <div class="monster-start-overlay" id="monsterStart">
+            <div class="monster-start-title">👾 炸裂小怪兽</div>
+            <div class="monster-start-desc">
+                点击消灭小怪兽<br>
+                随机点击后酒瓶爆炸<br>
+                爆炸了？喝一杯吧！
             </div>
-            <div class="card" onclick="openWheel()">
-                <div class="icon">🎰</div>
-                <h3>转盘摇酒</h3>
-                <p>随机选酒</p>
-            </div>
-            <div class="card" onclick="openMoodPicker()">
-                <div class="icon">🎭</div>
-                <h3>按心情挑</h3>
-                <p>心情匹配</p>
-            </div>
-            <div class="card" onclick="openMBTI()">
-                <div class="icon">🧠</div>
-                <h3>MBTI喝酒</h3>
-                <p>性格测试</p>
-            </div>
+            <button class="monster-start-btn" onclick="startMonsterGame()">开始游戏</button>
         </div>
-
-        <div id="monsterGameArea" style="display:none;">
-            <h3 style="text-align:center;margin-bottom:16px">👾 消灭怪兽！酒瓶随时爆炸！</h3>
-            <div style="text-align:center;margin-bottom:12px">
-                已消灭: <span id="monsterScore" style="color:#ff1493;font-weight:bold">0</span>
+        
+        <div class="monster-explode-overlay" id="monsterExplode">
+            <div class="monster-explode-icon">💥</div>
+            <div class="monster-explode-text">BOOM! 喝酒!</div>
+            <button class="monster-explode-btn" onclick="monsterDrinkWithAuth()">记一杯 🍻</button>
+        </div>
+    </div>
+    
+    <!-- 登录模态框 -->
+    <div id="loginModal" class="game-modal" style="z-index:99999;">
+        <div class="game-content" style="max-width:320px;">
+            <div class="game-header">
+                <h2>🍺 登录记录</h2>
+                <button class="game-close" onclick="closeLoginModal()">×</button>
             </div>
-            <div class="game-area" id="monsterArea"></div>
-            <div style="text-align:center;margin-top:12px">
-                <button class="btn btn-secondary" onclick="endMonsterGame()">结束游戏</button>
+            <p style="text-align:center;color:rgba(255,255,255,0.6);margin-bottom:20px;font-size:13px;">
+                登录后可保存饮酒记录到云端<br>不登录也能继续使用（仅本地保存）
+            </p>
+            <div id="loginForm">
+                <div style="margin-bottom:12px;">
+                    <input type="email" id="loginEmail" placeholder="邮箱" style="width:100%;padding:14px;border-radius:12px;border:1px solid rgba(255,20,147,0.3);background:rgba(255,255,255,0.05);color:#fff;font-size:14px;box-sizing:border-box;">
+                </div>
+                <div style="margin-bottom:16px;">
+                    <input type="password" id="loginPassword" placeholder="密码" style="width:100%;padding:14px;border-radius:12px;border:1px solid rgba(255,20,147,0.3);background:rgba(255,255,255,0.05);color:#fff;font-size:14px;box-sizing:border-box;">
+                </div>
+                <button onclick="doLogin()" style="width:100%;padding:14px;border-radius:12px;border:none;background:linear-gradient(135deg,#ff1493,#ff69b4);color:#fff;font-size:15px;font-weight:700;cursor:pointer;margin-bottom:12px;">登录</button>
+                <div id="loginError" style="color:#ff4444;font-size:12px;text-align:center;margin-bottom:12px;"></div>
+                <div style="text-align:center;font-size:12px;color:rgba(255,255,255,0.5);">
+                    没有账号？<a onclick="showRegister()" style="color:#ff1493;cursor:pointer;">立即注册</a>
+                </div>
+            </div>
+            <div id="registerForm" style="display:none;">
+                <div style="margin-bottom:12px;">
+                    <input type="text" id="regUsername" placeholder="用户名" style="width:100%;padding:14px;border-radius:12px;border:1px solid rgba(255,20,147,0.3);background:rgba(255,255,255,0.05);color:#fff;font-size:14px;box-sizing:border-box;">
+                </div>
+                <div style="margin-bottom:12px;">
+                    <input type="email" id="regEmail" placeholder="邮箱" style="width:100%;padding:14px;border-radius:12px;border:1px solid rgba(255,20,147,0.3);background:rgba(255,255,255,0.05);color:#fff;font-size:14px;box-sizing:border-box;">
+                </div>
+                <div style="margin-bottom:16px;">
+                    <input type="password" id="regPassword" placeholder="密码（至少6位）" style="width:100%;padding:14px;border-radius:12px;border:1px solid rgba(255,20,147,0.3);background:rgba(255,255,255,0.05);color:#fff;font-size:14px;box-sizing:border-box;">
+                </div>
+                <button onclick="doRegister()" style="width:100%;padding:14px;border-radius:12px;border:none;background:linear-gradient(135deg,#ff1493,#ff69b4);color:#fff;font-size:15px;font-weight:700;cursor:pointer;margin-bottom:12px;">注册</button>
+                <div id="regError" style="color:#ff4444;font-size:12px;text-align:center;margin-bottom:12px;"></div>
+                <div style="text-align:center;font-size:12px;color:rgba(255,255,255,0.5);">
+                    已有账号？<a onclick="showLogin()" style="color:#ff1493;cursor:pointer;">去登录</a>
+                </div>
+            </div>
+            <div style="text-align:center;margin-top:16px;">
+                <button onclick="skipLogin()" style="background:none;border:none;color:rgba(255,255,255,0.4);font-size:12px;cursor:pointer;">跳过，直接记录（仅本地）</button>
             </div>
         </div>
     </div>
-</div>
+    
+    <script>
+var beers = [
+    {name:'皮尔森',nameEn:'Pilsner',abv:'4-5%',quadrant:0,style:'拉格酵母底层发酵，口感干净利落，适合大口畅饮。',colorHex:'#f4d03f',brand:'青岛、Asahi朝日、科罗娜',tags:['入门首选','清爽解渴'],
+     glossary:['拉格：低温发酵，酵母在桶底工作，发酵彻底','拉格口感干净：杂质少，味道纯粹'],
+     x:0.2, y:0.2},
+    {name:'小麦白啤',nameEn:'Wheat Beer',abv:'4-6%',quadrant:0,style:'小麦占40%以上，蛋白质丰富带来云雾般朦胧酒体。',colorHex:'#f5e6ca',brand:'福佳白、蓝月',tags:['颜值担当','女生友好'],
+     glossary:['拉格：低温发酵，酵母在桶底工作，发酵彻底','拉格口感干净：杂质少，味道纯粹'],
+     x:0.35, y:0.25},
+    {name:'社交IPA',nameEn:'Session IPA',abv:'4-6%',quadrant:0,style:'保持IPA香气但降低酒精度，随时开喝不设限。',colorHex:'#e67e22',brand:'Lagunitas走开',tags:['社交神器','低醉不贵'],
+     glossary:['IPA：印度淡色艾尔，酒花香气浓郁的啤酒风格','Session：可连续畅饮的低酒精度定位'],
+     x:0.25, y:0.4},
+    {name:'果泥西打',nameEn:'Thickened Cider',abv:'2.5-5%',quadrant:0,style:'本质是苹果汁发酵(西打)，靠大量果泥增厚如冰沙。',colorHex:'#ffb6c1',brand:'十七不想玩、纸飞机',tags:['国内新锐','低度微醺'],
+     glossary:['西打(Cider)：以苹果汁为主发酵的酒，不是啤酒','果泥增厚：加入大量果肉纤维，模拟奶昔口感'],
+     x:0.2, y:0.3},
+    {name:'浑浊IPA',nameEn:'Hazy IPA',abv:'5.5-7.5%',quadrant:1,style:'大量干投酒花产生云雾外观，顺滑到怀疑人生。',colorHex:'#e8b84a',brand:'Tree House树屋',tags:['浑浊王者','果香炸弹'],
+     glossary:['干投(Dry Hop)：发酵后投入酒花，最大化香气、最小化苦味','浑浊来源：大量未过滤的蛋白质+酒花油脂'],
+     x:0.65, y:0.25},
+    {name:'NEIPA',nameEn:'NEIPA',abv:'6-7.5%',quadrant:1,style:'新英格兰风格代表，果香爆炸如热带风暴。',colorHex:'#9b59b6',brand:'炼金师、另一半',tags:['超级顺滑','Triple干投'],
+     glossary:['NEIPA：新英格兰IPA，浑浊IPA的先驱','Triple干投：三次酒花干投阶段，香气层层叠加'],
+     x:0.7, y:0.35},
+    {name:'果泥酸啤',nameEn:'Smoothie Beer',abv:'8-12%',quadrant:1,style:'基酒：酸艾尔/IPA，果泥≥40%，极厚奶昔感。',colorHex:'#ff69b4',brand:'The Bruery、Evil Twin',tags:['国际顶配','极度浓郁'],
+     glossary:['酸艾尔：引入乳酸菌/醋酸菌产生酸味','果泥添加≥40%：高比例果泥决定厚重口感'],
+     x:0.8, y:0.3},
+    {name:'赛松',nameEn:'Saison',abv:'5-8%',quadrant:2,style:'法语"季节"之意，农舍风格代表，胡椒草本气息。',colorHex:'#daa520',brand:'大道',tags:['农舍风格','小众之选'],
+     glossary:['Saison：法语"季节"，源于农场工人夏日饮品','农舍风格：追求野性、复杂、辛香的酵母特征'],
+     x:0.3, y:0.65},
+    {name:'西海岸IPA',nameEn:'West Coast IPA',abv:'6-7.5%',quadrant:1,style:'美式IPA的祖宗，松针树脂柚子皮从入口香到收口。',colorHex:'#e74c3c',brand:'鹅岛312、石屋',tags:['苦味经典','酒花狂魔'],
+     glossary:['西海岸：加州诞生的IPA风格，酒花苦度为核心','树脂/松针：来自美式酒花C hops的典型香气'],
+     x:0.7, y:0.55},
+    {name:'三倍干投IPA',nameEn:'TDH IPA',abv:'7-9%',quadrant:1,style:'三次酒花干投，香气层层叠加如海浪。',colorHex:'#c0392b',brand:'俄罗斯河',tags:['三倍诚意','香气爆炸'],
+     glossary:['TDH：Triple Dry Hop，三次干投','香气层层叠加：煮沸→发酵中→发酵后各投一次'],
+     x:0.75, y:0.7},
+    {name:'双倍IPA',nameEn:'DIPA',abv:'8-10%',quadrant:3,style:'双倍麦芽双倍酒花，酒精度逼近红酒。',colorHex:'#8b2500',brand:'小普林尼',tags:['酒精度高','极限挑战'],
+     glossary:['双倍(Double)：原料翻倍，口感更浓烈','Imperial：帝国级别，通常>8%的高酒精度'],
+     x:0.75, y:0.8},
+    {name:'牛奶世涛',nameEn:'Milk Stout',abv:'4-7%',quadrant:2,style:'添加乳糖如牛奶般丝滑，巧克力咖啡基调。',colorHex:'#6d4c41',brand:'左手',tags:['甜滑奶香','睡前之选'],
+     glossary:['乳糖：牛奶糖，发酵后无法被酵母消化，留存甜味','甜世涛：乳糖带来甜感，平衡深色麦芽的苦'],
+     x:0.65, y:0.65},
+    {name:'世涛',nameEn:'Stout',abv:'5-8%',quadrant:2,style:'深烘焙麦芽带来咖啡巧克力焦糖三重奏。',colorHex:'#3e2723',brand:'健力士',tags:['咖啡搭档','巧克力香'],
+     glossary:['深烘焙麦芽：焦化麦芽带来咖啡、巧克力、烘烤香','Stout：源于Strong Ale，特指浓郁深色艾尔'],
+     x:0.7, y:0.8},
+    {name:'帝国世涛',nameEn:'Imperial Stout',abv:'8-12%',quadrant:3,style:'俄罗斯帝国出口北欧的御用酒，波本桶陈酿。',colorHex:'#1a0f0a',brand:'Founders CBS',tags:['帝王享受','可陈年'],
+     glossary:['帝国世涛：为沙俄酿造的高酒精版本','波本桶陈酿：在威士忌橡木桶中陈化，吸收桶香'],
+     x:0.8, y:0.85}
+];
 
-<!-- 饮酒记录模态框 -->
-<div class="modal" id="drankModal">
-    <div class="modal-content">
-        <button class="modal-close" onclick="closeDrank()">×</button>
-        <h2 style="text-align:center;margin-bottom:20px">🍻 今天喝了吗</h2>
+var currentBeer = null;
+var currentNode = null;
+var svg = d3.select('#network');
+var tipContainer = document.getElementById('tipContainer');
+var width = window.innerWidth;
+var height = window.innerHeight;
+svg.attr('width', width).attr('height', height);
+
+// 创建节点
+var nodes = beers.map(function(beer, i) {
+    return {
+        id: i,
+        beer: beer,
+        x: beer.x * width + (Math.random() - 0.5) * 80,
+        y: beer.y * height + (Math.random() - 0.5) * 80,
+        radius: 28
+    };
+});
+
+// 创建连接（相似节点）
+var links = [];
+for (var i = 0; i < beers.length; i++) {
+    for (var j = i + 1; j < beers.length; j++) {
+        var dx = beers[i].x - beers[j].x;
+        var dy = beers[i].y - beers[j].y;
+        var dist = Math.sqrt(dx*dx + dy*dy);
+        if (dist < 0.25) {
+            links.push({source: i, target: j, strength: 1 - dist * 4});
+        }
+    }
+}
+
+// 力模拟
+var simulation = d3.forceSimulation(nodes)
+    .force('link', d3.forceLink(links).distance(60).strength(function(d) { return d.strength * 0.1; }))
+    .force('charge', d3.forceManyBody().strength(-100))
+    .force('collision', d3.forceCollide().radius(function(d) { return d.radius + 10; }))
+    .force('x', d3.forceX(function(d) { return d.beer.x * width; }).strength(0.25))
+    .force('y', d3.forceY(function(d) { return d.beer.y * height; }).strength(0.25));
+
+// 画连接线
+var link = svg.selectAll('.link')
+    .data(links)
+    .enter().append('line')
+    .attr('class', 'link')
+    .attr('stroke-opacity', function(d) { return d.strength * 0.3; });
+
+// 画节点
+var node = svg.selectAll('.node')
+    .data(nodes)
+    .enter().append('g')
+    .attr('class', 'node')
+    .on('click', function(event, d) { 
+        event.stopPropagation();
+        // 点击同一个节点：关闭
+        if (currentNode === d) {
+            closeCard();
+        } else {
+            showBeer(d); 
+        }
+    })
+    .call(d3.drag()
+        .on('start', function(event) { 
+            if (!event.active) simulation.alphaTarget(0.3).restart(); 
+            event.subject.fx = event.subject.x; 
+            event.subject.fy = event.subject.y; 
+        })
+        .on('drag', function(event, d) { 
+            event.subject.fx = event.x; 
+            event.subject.fy = event.y;
+            if (currentNode === d) moveTooltip(d);
+        })
+        .on('end', function(event) { 
+            if (!event.active) simulation.alphaTarget(0); 
+            event.subject.fx = null; 
+            event.subject.fy = null; 
+        }));
+
+// 外圈（虚线描边）
+node.append('circle')
+    .attr('class', 'outer')
+    .attr('r', function(d) { return d.radius + 8; })
+    .attr('fill', 'none')
+    .attr('stroke', function(d) { return d.beer.colorHex; })
+    .attr('stroke-width', 2)
+    .attr('stroke-dasharray', '8 4')
+    .attr('opacity', 0.5);
+
+// 内圈（实心）
+node.append('circle')
+    .attr('class', 'main')
+    .attr('r', function(d) { return d.radius; })
+    .attr('fill', function(d) { return d.beer.colorHex; })
+    .style('filter', 'drop-shadow(0 0 12px rgba(255,20,147,0.4))');
+
+// 高光点
+node.append('circle')
+    .attr('class', 'shine')
+    .attr('cx', function(d) { return -d.radius * 0.25; })
+    .attr('cy', function(d) { return -d.radius * 0.25; })
+    .attr('r', function(d) { return d.radius * 0.2; })
+    .attr('fill', 'rgba(255,255,255,0.35)');
+
+// 标签
+node.append('text')
+    .attr('class', 'node-label')
+    .attr('dy', function(d) { return d.radius + 24; })
+    .text(function(d) { return d.beer.name; });
+
+simulation.on('tick', function() {
+    link
+        .attr('x1', function(d) { return d.source.x; })
+        .attr('y1', function(d) { return d.source.y; })
+        .attr('x2', function(d) { return d.target.x; })
+        .attr('y2', function(d) { return d.target.y; });
+    
+    node.attr('transform', function(d) {
+        d.x = Math.max(d.radius + 60, Math.min(width - d.radius - 60, d.x));
+        d.y = Math.max(d.radius + 100, Math.min(height - d.radius - 100, d.y));
+        return 'translate(' + d.x + ',' + d.y + ')';
+    });
+    
+    // tooltip 跟随
+    if (currentNode) moveTooltip(currentNode);
+});
+
+function showBeer(d) {
+    currentBeer = d.beer;
+    currentNode = d;
+    
+    var beer = d.beer;
+    document.getElementById('tipColor').style.background = beer.colorHex;
+    document.getElementById('tipName').textContent = beer.name;
+    document.getElementById('tipEn').textContent = beer.nameEn;
+    document.getElementById('tipAbv').textContent = beer.abv;
+    document.getElementById('tipStyle').textContent = beer.style;
+    document.getElementById('tipBrand').textContent = '代表品牌: ' + beer.brand;
+    
+    // 术语解读
+    if (beer.glossary && beer.glossary.length > 0) {
+        var glossaryHtml = beer.glossary.map(function(item) {
+            var parts = item.split('：');
+            if (parts.length === 2) {
+                return '<div class="tip-glossary-item"><span class="tip-glossary-term">' + parts[0] + '</span><span class="tip-glossary-desc">：' + parts[1] + '</span></div>';
+            }
+            return '<div class="tip-glossary-item"><span class="tip-glossary-desc">' + item + '</span></div>';
+        }).join('');
+        document.getElementById('tipGlossary').innerHTML = glossaryHtml;
+    }
+    
+    // 标签
+    if (beer.tags) {
+        var tagsHtml = beer.tags.map(function(tag) {
+            return '<span class="tip-tag">' + tag + '</span>';
+        }).join('');
+        document.getElementById('tipTags').innerHTML = tagsHtml;
+    }
+    
+    tipContainer.style.display = 'block';
+    tipContainer.classList.add('show');
+    moveTooltip(d);
+}
+
+function moveTooltip(d) {
+    var tipWidth = 280;
+    var tipHeight = 300;
+    var offsetX = 50;
+    var offsetY = -80;
+    
+    var x = d.x + offsetX;
+    var y = d.y + offsetY;
+    
+    // 边界检测
+    if (x + tipWidth > width - 20) x = d.x - tipWidth - 40;
+    if (y < 10) y = 10;
+    if (y + tipHeight > height - 100) y = height - 100 - tipHeight;
+    
+    tipContainer.style.left = x + 'px';
+    tipContainer.style.top = y + 'px';
+}
+
+function closeCard() {
+    tipContainer.style.display = 'none';
+    tipContainer.classList.remove('show');
+    currentBeer = null;
+    currentNode = null;
+}
+
+function drinkThis() {
+    if (currentBeer) {
+        alert('已选择 ' + currentBeer.name + '！');
+        closeCard();
+    }
+}
+
+function askWhatToDrink() {
+    document.getElementById('rollModal').classList.add('show');
+    document.getElementById('rollBtn').style.display = 'block';
+    document.getElementById('rollBtn').textContent = '🎲 转一下';
+    document.getElementById('rollBtn').disabled = false;
+    document.getElementById('wheelResult').classList.remove('show');
+    drawWheel();
+}
+
+function closeRoll() {
+    document.getElementById('rollModal').classList.remove('show');
+}
+
+var isSpinning = false;
+var currentRotation = 0;
+var selectedBeer = null;
+
+function drawWheel() {
+    var canvas = document.getElementById('wheelCanvas');
+    var ctx = canvas.getContext('2d');
+    var centerX = canvas.width / 2;
+    var centerY = canvas.height / 2;
+    var radius = 130;
+    
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+    var sliceAngle = (2 * Math.PI) / beers.length;
+    var colors = ['#ff1493', '#9b59b6', '#3498db', '#2ecc71', '#f39c12', '#e74c3c', '#1abc9c', '#e91e63', '#6739b6', '#ff6b6b', '#4ecdc4', '#45b7d1'];
+    
+    beers.forEach(function(beer, i) {
+        var startAngle = i * sliceAngle - Math.PI / 2;
+        var endAngle = startAngle + sliceAngle;
         
-        <div style="margin-bottom:20px">
-            <label style="font-size:12px;color:rgba(255,255,255,0.5);margin-bottom:6px;display:block">选择酒款</label>
-            <select id="drankBeerSelect" style="width:100%;padding:12px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:12px;color:#fff;font-size:14px;">
-                <option value="">请选择...</option>
-            </select>
-        </div>
+        // 扇形
+        ctx.beginPath();
+        ctx.moveTo(centerX, centerY);
+        ctx.arc(centerX, centerY, radius, startAngle, endAngle);
+        ctx.closePath();
+        ctx.fillStyle = colors[i % colors.length];
+        ctx.fill();
+        ctx.strokeStyle = '#0a0a0a';
+        ctx.lineWidth = 2;
+        ctx.stroke();
         
-        <div style="margin-bottom:20px">
-            <label style="font-size:12px;color:rgba(255,255,255,0.5);margin-bottom:6px;display:block">心情</label>
-            <select id="drankMood" style="width:100%;padding:12px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:12px;color:#fff;font-size:14px;">
-                <option value="">请选择...</option>
-                <option value="happy">😊 开心</option>
-                <option value="sad">😢 难过</option>
-                <option value="stressed">😤 压力大</option>
-                <option value="relaxed">😌 放松</option>
-                <option value="excited">🤩 兴奋</option>
-                <option value="tired">😫 疲惫</option>
-                <option value="romantic">💕 浪漫</option>
-                <option value="social">🥂 社交</option>
-            </select>
-        </div>
+        // 文字
+        ctx.save();
+        ctx.translate(centerX, centerY);
+        ctx.rotate(startAngle + sliceAngle / 2);
+        ctx.textAlign = 'right';
+        ctx.fillStyle = '#fff';
+        ctx.font = 'bold 10px sans-serif';
+        ctx.fillText(beer.name, radius - 10, 4);
+        ctx.restore();
+    });
+    
+    // 外圈
+    ctx.beginPath();
+    ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
+    ctx.strokeStyle = '#ffd700';
+    ctx.lineWidth = 3;
+    ctx.stroke();
+}
+
+function startWheel() {
+    if (isSpinning) return;
+    isSpinning = true;
+    
+    var btn = document.getElementById('rollBtn');
+    btn.disabled = true;
+    btn.textContent = '滚动中...';
+    
+    var canvas = document.getElementById('wheelCanvas');
+    var targetIdx = Math.floor(Math.random() * beers.length);
+    var sliceAngle = (2 * Math.PI) / beers.length;
+    var targetAngle = -targetIdx * sliceAngle - sliceAngle / 2;
+    
+    // 多转几圈
+    var extraSpins = 5;
+    var totalRotation = currentRotation + (extraSpins * 360) + (360 - (targetAngle * 180 / Math.PI) % 360) + (targetAngle * 180 / Math.PI);
+    
+    var duration = 4000;
+    var startTime = Date.now();
+    
+    function animate() {
+        var elapsed = Date.now() - startTime;
+        var progress = Math.min(elapsed / duration, 1);
         
-        <button class="btn btn-primary" onclick="addDrankRecord()">记录饮酒</button>
+        var easeOut = 1 - Math.pow(1 - progress, 3);
+        var rotation = currentRotation + (totalRotation - currentRotation) * easeOut;
         
-        <h3 style="margin:24px 0 12px">📜 历史记录</h3>
-        <div class="record-list" id="drankRecordList"></div>
-    </div>
-</div>
+        canvas.style.transform = 'rotate(' + rotation + 'deg)';
+        
+        if (progress < 1) {
+            requestAnimationFrame(animate);
+        } else {
+            currentRotation = rotation % 360;
+            isSpinning = false;
+            btn.style.display = 'none';
+            
+            selectedBeer = beers[targetIdx];
+            document.getElementById('wheelResultName').textContent = selectedBeer.name;
+            document.getElementById('wheelResultEn').textContent = selectedBeer.nameEn + ' · ' + selectedBeer.abv;
+            document.getElementById('wheelResult').classList.add('show');
+        }
+    }
+    
+    animate();
+}
 
-<!-- 收藏模态框 -->
-<div class="modal" id="collectionModal">
-    <div class="modal-content">
-        <button class="modal-close" onclick="closeCollection()">×</button>
-        <h2 style="text-align:center;margin-bottom:20px">⭐ 我的收藏</h2>
-        <div class="beer-list" id="collectionList"></div>
-    </div>
-</div>
+function confirmThisBeer() {
+    closeRoll();
+    nodes.forEach(function(n) {
+        if (n.name === selectedBeer.name) {
+            showBeer(n);
+        }
+    });
+}
 
-<!-- 好友模态框 -->
-<div class="modal" id="friendsModal">
-    <div class="modal-content">
-        <button class="modal-close" onclick="closeFriends()">×</button>
-        <h2 style="text-align:center;margin-bottom:20px">👥 好友列表</h2>
-        <div id="friendList" style="margin-bottom:20px;"></div>
-        <h3 style="margin-bottom:12px">添加好友</h3>
-        <div style="display:flex;gap:8px;margin-bottom:16px;">
-            <input type="text" id="friendSearch" placeholder="搜索用户名..." style="flex:1;padding:12px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:12px;color:#fff;font-size:14px;">
-            <button class="btn btn-primary" onclick="searchFriend()" style="width:auto;padding:12px 16px;">搜索</button>
-        </div>
-        <div id="friendSearchResult"></div>
-    </div>
-</div>
+function skipToAnother() {
+    skipCount++;
+    
+    if (skipCount >= 3) {
+        document.getElementById('wheelResultName').textContent = '😤 你太有自己的主意了';
+        document.getElementById('wheelResultEn').textContent = '我无法推荐出你的心情酒款';
+        document.getElementById('wheelChoiceBtns').innerHTML = '<button class="wheel-confirm-btn" style="flex:1" onclick="goToPick()">小夯献出所有啤酒 请您挑选</button>';
+        return;
+    }
+    
+    var newIdx;
+    do {
+        newIdx = Math.floor(Math.random() * beers.length);
+    } while (beers[newIdx].name === selectedBeer.name && beers.length > 1);
+    
+    selectedBeer = beers[newIdx];
+    document.getElementById('wheelResultName').textContent = selectedBeer.name;
+    document.getElementById('wheelResultEn').textContent = selectedBeer.nameEn + ' · ' + selectedBeer.abv + ' (' + (3 - skipCount) + '次机会)';
+}
 
-<!-- Toast -->
-<div class="toast" id="toast"></div>
+var skipCount = 0;
 
-<script>
-// ========== 全局变量 ==========
-var beers = [];
-var currentUser = null;
-var isGuest = false;
+function resetSkipCount() {
+    skipCount = 0;
+}
+
+function startWheel() {
+    if (isSpinning) return;
+    isSpinning = true;
+    skipCount = 0;
+    
+    var btn = document.getElementById('rollBtn');
+    btn.disabled = true;
+    btn.textContent = '滚动中...';
+    
+    var canvas = document.getElementById('wheelCanvas');
+    var targetIdx = Math.floor(Math.random() * beers.length);
+    var sliceAngle = (2 * Math.PI) / beers.length;
+    var targetAngle = -targetIdx * sliceAngle - sliceAngle / 2;
+    
+    var extraSpins = 5;
+    var totalRotation = currentRotation + (extraSpins * 360) + (360 - (targetAngle * 180 / Math.PI) % 360) + (targetAngle * 180 / Math.PI);
+    
+    var duration = 4000;
+    var startTime = Date.now();
+    
+    function animate() {
+        var elapsed = Date.now() - startTime;
+        var progress = Math.min(elapsed / duration, 1);
+        
+        var easeOut = 1 - Math.pow(1 - progress, 3);
+        var rotation = currentRotation + (totalRotation - currentRotation) * easeOut;
+        
+        canvas.style.transform = 'rotate(' + rotation + 'deg)';
+        
+        if (progress < 1) {
+            requestAnimationFrame(animate);
+        } else {
+            currentRotation = rotation % 360;
+            isSpinning = false;
+            btn.style.display = 'none';
+            
+            selectedBeer = beers[targetIdx];
+            document.getElementById('wheelResultName').textContent = selectedBeer.name;
+            document.getElementById('wheelResultEn').textContent = selectedBeer.nameEn + ' · ' + selectedBeer.abv + ' (3次机会)';
+            document.getElementById('wheelChoiceBtns').innerHTML = 
+                '<button class="wheel-skip-btn" onclick="skipToAnother()">换一杯</button>' +
+                '<button class="wheel-confirm-btn" onclick="confirmThisBeer()">就是这杯了</button>';
+            document.getElementById('wheelResult').classList.add('show');
+        }
+    }
+    
+    animate();
+}
+
+// 点击空白处关闭
+svg.on('click', function() {
+    closeCard();
+});
+
+// ========== 今天喝了吗 ==========
+function openDrankModal() {
+    document.getElementById('drankModal').classList.add('show');
+    backToChoice();
+}
+
+function closeDrank() {
+    document.getElementById('drankModal').classList.remove('show');
+}
+
+function backToChoice() {
+    document.getElementById('drankChoiceView').style.display = 'block';
+    document.getElementById('drankBeerListView').style.display = 'none';
+    document.getElementById('drankCustomView').style.display = 'none';
+}
+
+function showBeerList() {
+    var list = document.getElementById('drankList');
+    list.innerHTML = beers.map(function(b) {
+        return '<div class="drank-beer-item" onclick="selectDrank(\'' + b.name + '\')">' +
+            '<div><div class="drank-beer-name">' + b.name + '</div><div class="drank-beer-en">' + b.nameEn + '</div></div>' +
+            '<div style="width:10px;height:10px;border-radius:50%;background:' + b.colorHex + ';"></div></div>';
+    }).join('');
+    document.getElementById('drankChoiceView').style.display = 'none';
+    document.getElementById('drankBeerListView').style.display = 'block';
+    document.getElementById('drankCustomView').style.display = 'none';
+}
+
+function showCustomInput() {
+    document.getElementById('drankChoiceView').style.display = 'none';
+    document.getElementById('drankBeerListView').style.display = 'none';
+    document.getElementById('drankCustomView').style.display = 'block';
+    document.getElementById('customBeerInput').value = '';
+    document.getElementById('customBeerInput').focus();
+}
+
+function selectDrank(name) {
+    saveDrinkWithAuth(name);
+}
+
+function confirmCustomDrink() {
+    var name = document.getElementById('customBeerInput').value.trim();
+    if (!name) return;
+    saveDrinkWithAuth(name);
+}
+
+function saveDrink(name) {
+    var today = new Date().toLocaleDateString('zh-CN');
+    var drank = localStorage.getItem('drankBeer') || '[]';
+    var names = JSON.parse(drank);
+    names.unshift({name: name, date: today});
+    if (names.length > 100) names = names.slice(0, 100);
+    localStorage.setItem('drankBeer', JSON.stringify(names));
+    closeDrank();
+    syncMyDataToFriends();
+    openStatsModal();
+}
+
+function noDrinkToday() {
+    closeDrank();
+    openStatsModal();
+}
+
+// ========== 统计页 ==========
+function openStatsModal() {
+    document.getElementById('statsModal').classList.add('show');
+    switchFriendTab('personal');
+    renderStats();
+    initFriendData();
+    document.getElementById('myNameInput').value = getMyName();
+}
+
+function closeStats() {
+    document.getElementById('statsModal').classList.remove('show');
+}
+
+function switchFriendTab(tab) {
+    document.querySelectorAll('.friend-tab').forEach(function(t) { t.classList.remove('active'); });
+    event.target.classList.add('active');
+    document.getElementById('personalStats').style.display = tab === 'personal' ? 'block' : 'none';
+    document.getElementById('leaderboardStats').style.display = tab === 'leaderboard' ? 'block' : 'none';
+    if (tab === 'leaderboard') renderFriendLeaderboard();
+}
+
+function getMyName() {
+    return localStorage.getItem('beerLabMyName') || '';
+}
+
+function saveMyName() {
+    var name = document.getElementById('myNameInput').value.trim();
+    localStorage.setItem('beerLabMyName', name);
+    syncMyDataToFriends();
+}
+
+function renderStats() {
+    var drank = localStorage.getItem('drankBeer') || '[]';
+    var names = JSON.parse(drank);
+    var now = new Date();
+    var today = now.toLocaleDateString('zh-CN');
+    var thisMonth = (now.getFullYear()) + '/' + (now.getMonth() + 1);
+    var thisYear = now.getFullYear();
+    
+    var countToday = 0, countMonth = 0, countYear = 0;
+    var beerCount = {};
+    
+    names.forEach(function(b) {
+        if (b.date === today) countToday++;
+        if (b.date.startsWith(thisMonth)) countMonth++;
+        if (b.date.endsWith(thisYear)) countYear++;
+        if (beerCount[b.name]) beerCount[b.name]++;
+        else beerCount[b.name] = 1;
+    });
+    
+    document.getElementById('statsToday').textContent = countToday;
+    document.getElementById('statsMonth').textContent = countMonth;
+    document.getElementById('statsYear').textContent = countYear;
+    
+    var sorted = Object.entries(beerCount).sort(function(a, b) { return b[1] - a[1]; });
+    var rankHtml = sorted.slice(0, 5).map(function(item, i) {
+        return '<div class="stats-rank-item">' +
+            '<span class="stats-rank-name">' + (i+1) + '. ' + item[0] + '</span>' +
+            '<span class="stats-rank-count">' + item[1] + '杯</span></div>';
+    }).join('');
+    document.getElementById('statsRankList').innerHTML = rankHtml || '<div class="drank-empty">暂无记录</div>';
+}
+
+// ========== 朋友排行榜 (LocalStorage Prototype) ==========
+function initFriendData() {
+    var friendsData = localStorage.getItem('beerLabFriends');
+    if (!friendsData) {
+        // 初始化测试数据
+        var testData = {
+            'DD': 100,
+            'ELLA': 30,
+            'MELO': 20,
+            'MOB': 10,
+            'JJ': 1
+        };
+        localStorage.setItem('beerLabFriends', JSON.stringify(testData));
+    }
+    syncMyDataToFriends();
+}
+
+function syncMyDataToFriends() {
+    var myName = getMyName();
+    if (!myName) return;
+    
+    var drank = localStorage.getItem('drankBeer') || '[]';
+    var names = JSON.parse(drank);
+    var countYear = names.filter(function(b) {
+        return b.date.endsWith(new Date().getFullYear());
+    }).length;
+    
+    var friends = JSON.parse(localStorage.getItem('beerLabFriends') || '{}');
+    friends[myName] = countYear;
+    localStorage.setItem('beerLabFriends', JSON.stringify(friends));
+}
+
+function renderFriendLeaderboard() {
+    var friends = JSON.parse(localStorage.getItem('beerLabFriends') || '{}');
+    var sorted = Object.entries(friends).sort(function(a, b) { return b[1] - a[1]; });
+    
+    var myName = getMyName();
+    var lastIdx = sorted.length - 1;
+    var html = sorted.map(function(item, i) {
+        var rankClass = i === 0 ? 'top1' : (i === 1 ? 'top2' : (i === 2 ? 'top3' : ''));
+        var suffix = '';
+        if (i === 0) suffix = '👑';
+        else if (i === lastIdx) suffix = '🐔';
+        return '<div class="friend-item ' + rankClass + '">' +
+            '<span class="friend-rank">' + (i + 1) + '</span>' +
+            '<span class="friend-name">' + item[0] + (item[0] === myName ? ' (我)' : '') + '</span>' +
+            '<span class="friend-count">' + item[1] + '杯' + suffix + '</span></div>';
+    }).join('');
+    document.getElementById('friendLeaderboard').innerHTML = 
+        '<div style="text-align:center;font-size:13px;color:rgba(255,255,255,0.5);margin-bottom:12px;">从夯到拉</div>' +
+        (html || '<div class="drank-empty">暂无数据</div>');
+}
+
+window.addEventListener('resize', function() {
+    location.reload();
+});
+
+// ========== 游戏中心 ==========
+function openGames() { document.getElementById('gameModal').classList.add('show'); }
+function closeGames() { document.getElementById('gameModal').classList.remove('show'); }
+
+// ========== 调酒游戏 ==========
+var brewConfig = { base: 'lager', style: 'light', add: 'none' };
+
+function openMakeBeer() {
+    closeGames();
+    document.getElementById('makeBeerModal').classList.add('show');
+    document.getElementById('brewName').textContent = '你的精酿';
+    document.getElementById('brewDesc').textContent = '选择配料开始调配';
+    document.getElementById('brewPreview').style.background = '#333';
+}
+function closeMakeBeer() { document.getElementById('makeBeerModal').classList.remove('show'); }
+
+function selectBrew(el, type) {
+    var parent = el.parentElement;
+    parent.querySelectorAll('.brew-opt').forEach(function(opt) { opt.classList.remove('selected'); });
+    el.classList.add('selected');
+    brewConfig[type] = el.dataset.val;
+    updateBrewPreview();
+}
+
+function updateBrewPreview() {
+    var colors = {
+        'lager-light': '#f4d03f', 'lager-hoppy': '#e67e22', 'lager-fruity': '#ffb6c1', 'lager-roasty': '#6d4c41',
+        'ale-light': '#f5e6ca', 'ale-hoppy': '#e8b84a', 'ale-fruity': '#9b59b6', 'ale-roasty': '#8b2500',
+        'sour-light': '#ff69b4', 'sour-hoppy': '#e74c3c', 'sour-fruity': '#ff1493', 'sour-roasty': '#c0392b',
+        'cider-light': '#ffb6c1', 'cider-hoppy': '#ff69b4', 'cider-fruity': '#ff1493', 'cider-roasty': '#daa520'
+    };
+    var key = brewConfig.base + '-' + brewConfig.style;
+    document.getElementById('brewPreview').style.background = colors[key] || '#ff1493';
+}
+
+function brewBeer() {
+    var recipes = {
+        'lager-light-none': {name: '清爽拉格', desc: '干净利落，大口畅饮的经典'},
+        'lager-hoppy-none': {name: '皮尔森', desc: '酒花香气与麦芽甜平衡'},
+        'lager-fruity-none': {name: '果味拉格', desc: '拉格基底+水果增味'},
+        'lager-roasty-none': {name: '黑拉格', desc: '深色麦芽带来烘焙香'},
+        'lager-light-hops': {name: '干投皮尔森', desc: '干投酒花提升香气'},
+        'lager-hoppy-hops': {name: '美式皮尔森', desc: '美式酒花风格皮尔森'},
+        'ale-light-none': {name: '金色艾尔', desc: '温暖的麦芽甜'},
+        'ale-hoppy-none': {name: '英式IPA', desc: '传统酒花风格'},
+        'ale-fruity-none': {name: '水果艾尔', desc: '艾尔基底+丰富果香'},
+        'ale-roasty-none': {name: '棕色艾尔', desc: '焦糖与烘焙麦芽'},
+        'ale-hoppy-hops': {name: '浑浊IPA', desc: '干投酒花带来爆炸果香'},
+        'sour-light-none': {name: '柏林酸小麦', desc: '清爽酸感夏日必备'},
+        'sour-hoppy-none': {name: '酸IPA', desc: '酸与苦的完美平衡'},
+        'sour-fruity-none': {name: '果泥酸啤', desc: '高比例果泥增稠'},
+        'sour-fruity-fruit': {name: '超级果泥', desc: '双重水果享受'},
+        'cider-light-none': {name: '苹果西打', desc: '清爽果香简单纯粹'},
+        'cider-fruity-none': {name: '果泥西打', desc: '国内流行增厚西打'},
+        'cider-fruity-fruit': {name: '超级果泥西打', desc: '极厚冰沙口感'},
+        'lager-roasty-coffee': {name: '咖啡拉格', desc: '拉格基底+咖啡增味'},
+        'ale-roasty-coffee': {name: '咖啡世涛', desc: '经典咖啡与世涛组合'},
+        'sour-fruity-hops': {name: '酸浑浊', desc: '酸味+酒花香气组合'}
+    };
+    
+    var addMap = {none:'', hops:'+酒花', fruit:'+水果', coffee:'+咖啡'};
+    var key = brewConfig.base + '-' + brewConfig.style + '-' + brewConfig.add;
+    var result = recipes[key] || {name: '创意精酿', desc: '独一无二的自创配方'};
+    
+    document.getElementById('brewName').textContent = result.name;
+    document.getElementById('brewDesc').textContent = result.desc + addMap[brewConfig.add];
+}
+
+// ========== 心情挑酒 ==========
+var moodData = {
+    happy: {icon: '🎉', beer: '皮尔森', desc: '开心时刻来一杯清爽的皮尔森，或者来点社交IPA嗨翻全场！'},
+    stressed: {icon: '😌', beer: '小麦白啤', desc: '压力大？来一杯柔和的小麦白啤，泡沫丰富心情好。'},
+    sad: {icon: '🥃', beer: '世涛', desc: '深沉时刻需要深色麦芽的慰藉，一杯世涛配巧克力。'},
+    chill: {icon: '🌿', beer: '赛松', desc: '放松慵懒的下午，一杯草本气息的赛松刚刚好。'},
+    social: {icon: '🥳', beer: 'NEIPA', desc: '社交局首选！果香爆炸的NEIPA让气氛更嗨。'},
+    alone: {icon: '📖', beer: '牛奶世涛', desc: '独处时光，一杯丝滑的牛奶世涛配本书。'}
+};
+
 var moodSkipCount = 0;
 var currentMoodBeer = null;
-var userCollection = [];
 
-// 转盘相关
-var wheelSpinning = false;
-var wheelAngle = 0;
+function openMoodPicker() {
+    closeGames();
+    document.getElementById('moodModal').classList.add('show');
+    document.getElementById('moodResult').style.display = 'none';
+    moodSkipCount = 0;
+    currentMoodBeer = null;
+}
+function closeMoodPicker() { 
+    document.getElementById('moodModal').classList.remove('show'); 
+    moodSkipCount = 0;
+    currentMoodBeer = null;
+}
 
-// 怪兽游戏
+function selectMood(mood) {
+    moodSkipCount = 0;
+    var data = moodData[mood];
+    
+    // 根据心情关键词匹配啤酒
+    var matchedBeer = beers.find(function(b) {
+        return b.name === data.beer;
+    }) || beers[Math.floor(Math.random() * beers.length)];
+    
+    currentMoodBeer = matchedBeer;
+    showMoodResult(matchedBeer, 3);
+}
+
+function showMoodResult(beer, chances) {
+    document.getElementById('moodResult').innerHTML = 
+        '<div class="mood-result-icon" style="font-size:50px;color:' + beer.colorHex + ';">🍺</div>' +
+        '<div class="mood-result-name">' + beer.name + '</div>' +
+        '<div class="mood-result-desc" style="margin-bottom:12px;">' + beer.style + '</div>' +
+        '<div class="mood-choice-btns">' +
+            '<button class="wheel-skip-btn" onclick="skipMoodBeer()" style="flex:1;padding:12px;border-radius:12px;border:none;background:rgba(255,255,255,0.1);color:rgba(255,255,255,0.7);font-size:14px;font-weight:600;cursor:pointer;">换一杯</button>' +
+            '<button class="wheel-confirm-btn" onclick="confirmMoodBeer()" style="flex:1;padding:12px;border-radius:12px;border:none;background:linear-gradient(135deg, #ff1493, #ff69b4);color:#fff;font-size:14px;font-weight:600;cursor:pointer;">就是这杯了</button>' +
+        '</div>' +
+        '<div style="font-size:11px;color:rgba(255,255,255,0.4);margin-top:10px;">剩余 ' + chances + ' 次换酒机会</div>';
+    document.getElementById('moodResult').style.display = 'block';
+}
+
+function skipMoodBeer() {
+    moodSkipCount++;
+    
+    if (moodSkipCount >= 3) {
+        document.getElementById('moodResult').innerHTML = 
+            '<div class="mood-result-icon">😤</div>' +
+            '<div class="mood-result-name">你太有自己的主意了</div>' +
+            '<div class="mood-result-desc">我无法推荐出你的心情酒款</div>' +
+            '<button onclick="goToBeerList()" style="margin-top:16px;width:100%;padding:14px;border-radius:12px;border:none;background:linear-gradient(135deg, #ffd700, #ffb700);color:#000;font-size:14px;font-weight:700;cursor:pointer;">小夯献出所有啤酒 请您挑选</button>';
+        return;
+    }
+    
+    // 随机选一款不同的酒
+    var newBeer;
+    do {
+        newBeer = beers[Math.floor(Math.random() * beers.length)];
+    } while (newBeer.name === currentMoodBeer.name && beers.length > 1);
+    
+    currentMoodBeer = newBeer;
+    showMoodResult(newBeer, 3 - moodSkipCount);
+}
+
+function confirmMoodBeer() {
+    // 跳转到该啤酒的详情（通过触发点击对应的节点）
+    closeMoodPicker();
+    var targetNode = nodes.find(function(n) {
+        return n.beer.name === currentMoodBeer.name;
+    });
+    if (targetNode) {
+        showBeer(targetNode);
+    }
+}
+
+function goToBeerList() {
+    closeMoodPicker();
+    // 显示所有啤酒，让用户自己选
+    // 这里可以打开一个选择列表，或者滚动到某个位置
+    alert('去酒单挑选你喜欢的啤酒吧！🍺');
+}
+
+// ========== MBTI喝酒 ==========
+var mbtiData = {
+    'INTJ': {name: '策划大师', beer: '帝国世涛', desc: '你有条理、有规划。帝国世涛的复杂性正好匹配你的深度——强劲、深邃、值得细细品味。'},
+    'INTP': {name: '思想家', beer: '赛松', desc: '你热爱思考，追求独特。赛松的农舍风格和草本气息，正好配你那颗追求与众不同的心。'},
+    'ENTJ': {name: '指挥官', beer: '双倍IPA', desc: '你充满野心，追求极致。双倍IPA的高酒精度和浓郁风味，与你的领导力完美匹配。'},
+    'ENTP': {name: '创新者', beer: '果泥酸啤', desc: '你创意无限，喜欢尝鲜。国际前沿的果泥酸啤，够独特够爆炸！'},
+    'INFJ': {name: '理想主义者', beer: '小麦白啤', desc: '你温柔细腻，追求和谐。云雾般的小麦白啤，柔和又治愈。'},
+    'INFP': {name: '追梦人', beer: 'NEIPA', desc: '你充满想象，热爱浪漫。果香爆炸的NEIPA，像热带风暴一样绚烂。'},
+    'ENFJ': {name: '领导者', beer: '西海岸IPA', desc: '你有魅力，善于激励。西海岸IPA的经典苦韵，正如有影响力的你。'},
+    'ENFP': {name: '社交达人', beer: '社交IPA', desc: '你活力四射，人见人爱。低度社交IPA，随时开喝不设限！'},
+    'ISTJ': {name: '实践者', beer: '皮尔森', desc: '你务实可靠，坚持传统。经典皮尔森，干净利落从不让人失望。'},
+    'ISFJ': {name: '守护者', beer: '牛奶世涛', desc: '你温柔体贴，善于照顾人。丝滑的牛奶世涛，甜蜜又温暖。'},
+    'ESTJ': {name: '总经理', beer: '世涛', desc: '你高效务实，重视规则。一杯扎实世涛，像你一样稳重可靠。'},
+    'ESFJ': {name: '派对国王', beer: '果泥西打', desc: '你热情好客，人气爆棚。派对必备的果泥西打，颜值口感双在线！'},
+    'ISTP': {name: '精酿老炮', beer: '帝国世涛', desc: '你动手能力强，追求技术。桶陈帝国世涛，值得研究的深度。'},
+    'ISFP': {name: '探险家', beer: '柏林酸小麦', desc: '你敏感细腻，追求美感。清爽的柏林酸小麦，如艺术般精致。'},
+    'ESTP': {name: '冒险家', beer: '三倍干投IPA', desc: '你大胆刺激，喜欢冒险。三倍干投IPA的爆炸香气，够劲！'},
+    'ESFP': {name: '表演者', beer: '浑浊IPA', desc: '你天生明星，魅力四射。浑浊IPA的视觉冲击和果香，正配你的气场！'}
+};
+
+function openMBTI() {
+    closeGames();
+    document.getElementById('mbtiModal').classList.add('show');
+    document.getElementById('mbtiResult').style.display = 'none';
+}
+function closeMBTI() { document.getElementById('mbtiModal').classList.remove('show'); }
+
+function selectMBTI(type) {
+    var data = mbtiData[type];
+    if (!data) return;
+    document.getElementById('mbtiResult').innerHTML =
+        '<div class="mbti-result-type">' + type + '</div>' +
+        '<div class="mbti-result-name">' + data.name + '</div>' +
+        '<div class="mbti-result-beer">推荐: ' + data.beer + '</div>' +
+        '<div class="mbti-result-desc">' + data.desc + '</div>';
+    document.getElementById('mbtiResult').style.display = 'block';
+}
+
+// ========== 炸裂小怪兽游戏 ==========
+var monsters = ['👾', '👻', '🤖', '👹', '👺', '💀', '👽', '🎃', '🤡', '🐙'];
 var monsterScore = 0;
-var monsterTarget = 0;
+var monsterTarget = 0; // 每次游戏随机1-20
 var monsterSpawnInterval = null;
 var isMonsterGameRunning = false;
 
-// ========== API 配置 ==========
-const API_BASE = '/api';
+function openMonsterGame() {
+    closeGames();
+    document.getElementById('monsterGame').classList.add('show');
+    document.getElementById('monsterStart').classList.remove('hide');
+    document.getElementById('monsterExplode').classList.remove('show');
+    document.getElementById('monsterScore').textContent = '0';
+    document.getElementById('monsterBottle').className = 'monster-bottle';
+    document.getElementById('monsterBottle').textContent = '🍺';
+    monsterScore = 0;
+}
 
-// ========== 初始化 ==========
-async function init() {
-    // 尝试加载本地用户
-    const savedUser = localStorage.getItem('beerlab_user');
-    const savedToken = localStorage.getItem('beerlab_token');
+function closeMonsterGame() {
+    document.getElementById('monsterGame').classList.remove('show');
+    stopMonsterGame();
+}
+
+function startMonsterGame() {
+    document.getElementById('monsterStart').classList.add('hide');
+    monsterScore = 0;
+    // 随机目标1-20个
+    monsterTarget = 1 + Math.floor(Math.random() * 20);
+    isMonsterGameRunning = true;
     
-    if (savedUser && savedToken) {
-        currentUser = JSON.parse(savedUser);
-        isGuest = localStorage.getItem('beerlab_guest') === 'true';
-        showApp();
-        await loadData();
-    } else {
-        showLogin();
+    // 定期生成小怪兽
+    monsterSpawnInterval = setInterval(spawnMonster, 600);
+    
+    // 初始生成几个
+    for (var i = 0; i < 3; i++) {
+        setTimeout(spawnMonster, i * 200);
     }
 }
 
-async function loadData() {
-    try {
-        // 加载啤酒列表
-        const res = await fetch(`${API_BASE}/beers`);
-        beers = await res.json();
-        renderBeerList();
-        
-        if (!isGuest) {
-            loadDrankRecords();
-            loadUserCollection();
+function stopMonsterGame() {
+    isMonsterGameRunning = false;
+    if (monsterSpawnInterval) {
+        clearInterval(monsterSpawnInterval);
+        monsterSpawnInterval = null;
+    }
+    // 清空所有怪兽
+    var field = document.getElementById('monsterField');
+    field.innerHTML = '';
+}
+
+function spawnMonster() {
+    if (!isMonsterGameRunning) return;
+    
+    var field = document.getElementById('monsterField');
+    var fieldRect = field.getBoundingClientRect();
+    
+    var monster = document.createElement('div');
+    monster.className = 'monster-item';
+    monster.textContent = monsters[Math.floor(Math.random() * monsters.length)];
+    
+    // 随机位置
+    var x = Math.random() * (fieldRect.width - 80);
+    var y = Math.random() * (fieldRect.height - 80);
+    monster.style.left = x + 'px';
+    monster.style.top = y + 'px';
+    
+    monster.onclick = function() {
+        hitMonster(monster);
+    };
+    
+    field.appendChild(monster);
+    
+    // 2-4秒后自动消失
+    var lifeTime = 2000 + Math.random() * 2000;
+    setTimeout(function() {
+        if (monster.parentNode && !monster.classList.contains('hit')) {
+            monster.remove();
         }
-    } catch (e) {
-        console.error('加载数据失败:', e);
-        // 离线模式使用本地数据
-        loadLocalBeers();
+    }, lifeTime);
+}
+
+function hitMonster(monster) {
+    if (!isMonsterGameRunning || monster.classList.contains('hit')) return;
+    
+    monster.classList.add('hit');
+    monsterScore++;
+    
+    document.getElementById('monsterScore').textContent = monsterScore;
+    
+    // 3秒后移除
+    setTimeout(function() {
+        monster.remove();
+    }, 300);
+    
+    // 达到目标就爆炸
+    if (monsterScore >= monsterTarget) {
+        explodeBottle();
     }
 }
 
-function loadLocalBeers() {
-    // 本地备用啤酒数据
-    beers = [
-        {id:'1',name:'IPA',tag:'IPA',abv:6.0,description:'经典美式IPA'},
-        {id:'2',name:'健力士',tag:'Stout',abv:4.2,description:'经典黑啤'},
-        {id:'3',name:'福佳白',tag:'Witbier',abv:4.9,description:'比利时白啤'},
-        {id:'4',name:'青岛',tag:'Lager',abv:4.3,description:'国民经典'},
-        {id:'5',name:'科罗娜',tag:'Lager',abv:4.5,description:'度假风'},
-    ];
-    renderBeerList();
+function explodeBottle() {
+    stopMonsterGame();
+    
+    var bottle = document.getElementById('monsterBottle');
+    bottle.classList.remove('shake');
+    bottle.classList.add('explode');
+    
+    setTimeout(function() {
+        document.getElementById('monsterExplode').classList.add('show');
+    }, 500);
 }
 
-// ========== 认证 ==========
+function monsterDrink() {
+    document.getElementById('monsterExplode').classList.remove('show');
+    monsterScore = 0;
+    document.getElementById('monsterScore').textContent = '0';
+    document.getElementById('monsterProgress').style.width = '0%';
+    document.getElementById('monsterBottle').className = 'monster-bottle';
+    document.getElementById('monsterBottle').textContent = '🍺';
+    
+    // 重开
+    setTimeout(function() {
+        startMonsterGame();
+    }, 300);
+}
+
+// ========== 登录功能 ==========
+var currentUser = null;
+var isLoggedIn = false;
+var pendingDrinkAction = null;
+
+const API_BASE = window.location.origin + '/api';
+
+function openLoginModal(callback) {
+    pendingDrinkAction = callback;
+    document.getElementById('loginModal').classList.add('show');
+    showLogin();
+}
+
+function closeLoginModal() {
+    document.getElementById('loginModal').classList.remove('show');
+    pendingDrinkAction = null;
+}
+
 function showLogin() {
-    document.getElementById('loginScreen').classList.remove('hidden');
-    document.getElementById('appScreen').classList.remove('active');
     document.getElementById('loginForm').style.display = 'block';
     document.getElementById('registerForm').style.display = 'none';
+    document.getElementById('loginError').textContent = '';
 }
 
 function showRegister() {
     document.getElementById('loginForm').style.display = 'none';
     document.getElementById('registerForm').style.display = 'block';
-    document.getElementById('loginError').textContent = '';
     document.getElementById('regError').textContent = '';
 }
 
-async function handleLogin() {
-    const email = document.getElementById('loginEmail').value;
-    const password = document.getElementById('loginPassword').value;
-    const errorEl = document.getElementById('loginError');
+async function doLogin() {
+    var email = document.getElementById('loginEmail').value;
+    var password = document.getElementById('loginPassword').value;
+    var errorEl = document.getElementById('loginError');
     
     if (!email || !password) {
         errorEl.textContent = '请填写所有字段';
@@ -891,12 +2141,12 @@ async function handleLogin() {
     }
     
     try {
-        const res = await fetch(`${API_BASE}/auth/login`, {
+        var res = await fetch(API_BASE + '/auth/login', {
             method: 'POST',
-            headers: {'Content-Type':'application/json'},
+            headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({email, password})
         });
-        const data = await res.json();
+        var data = await res.json();
         
         if (!res.ok) {
             errorEl.textContent = data.error || '登录失败';
@@ -905,23 +2155,24 @@ async function handleLogin() {
         
         localStorage.setItem('beerlab_token', data.token);
         localStorage.setItem('beerlab_user', JSON.stringify(data.user));
-        localStorage.setItem('beerlab_guest', 'false');
+        isLoggedIn = true;
         currentUser = data.user;
-        isGuest = false;
+        closeLoginModal();
         
-        showApp();
-        await loadData();
-        toast('登录成功！🍻');
+        if (pendingDrinkAction) {
+            pendingDrinkAction();
+            pendingDrinkAction = null;
+        }
     } catch (e) {
         errorEl.textContent = '网络错误，请稍后重试';
     }
 }
 
-async function handleRegister() {
-    const username = document.getElementById('regUsername').value;
-    const email = document.getElementById('regEmail').value;
-    const password = document.getElementById('regPassword').value;
-    const errorEl = document.getElementById('regError');
+async function doRegister() {
+    var username = document.getElementById('regUsername').value;
+    var email = document.getElementById('regEmail').value;
+    var password = document.getElementById('regPassword').value;
+    var errorEl = document.getElementById('regError');
     
     if (!username || !email || !password) {
         errorEl.textContent = '请填写所有字段';
@@ -934,12 +2185,12 @@ async function handleRegister() {
     }
     
     try {
-        const res = await fetch(`${API_BASE}/auth/register`, {
+        var res = await fetch(API_BASE + '/auth/register', {
             method: 'POST',
-            headers: {'Content-Type':'application/json'},
+            headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({email, password, username})
         });
-        const data = await res.json();
+        var data = await res.json();
         
         if (!res.ok) {
             errorEl.textContent = data.error || '注册失败';
@@ -948,585 +2199,68 @@ async function handleRegister() {
         
         localStorage.setItem('beerlab_token', data.token);
         localStorage.setItem('beerlab_user', JSON.stringify(data.user));
-        localStorage.setItem('beerlab_guest', 'false');
+        isLoggedIn = true;
         currentUser = data.user;
-        isGuest = false;
+        closeLoginModal();
         
-        showApp();
-        await loadData();
-        toast('注册成功！欢迎加入 🍻');
+        if (pendingDrinkAction) {
+            pendingDrinkAction();
+            pendingDrinkAction = null;
+        }
     } catch (e) {
         errorEl.textContent = '网络错误，请稍后重试';
     }
 }
 
-function guestLogin() {
-    currentUser = {userId: 'guest', username: '游客', email: ''};
-    isGuest = true;
-    localStorage.setItem('beerlab_user', JSON.stringify(currentUser));
-    localStorage.setItem('beerlab_guest', 'true');
-    showApp();
-    loadLocalBeers();
-    toast('游客模式 - 数据不保存');
-}
-
-function handleLogout() {
-    localStorage.removeItem('beerlab_token');
-    localStorage.removeItem('beerlab_user');
-    localStorage.removeItem('beerlab_guest');
-    currentUser = null;
-    isGuest = false;
-    showLogin();
-    toggleUserMenu();
-    toast('已退出登录');
-}
-
-function showApp() {
-    document.getElementById('loginScreen').classList.add('hidden');
-    document.getElementById('appScreen').classList.add('active');
-    document.getElementById('userName').textContent = currentUser.username;
-    document.getElementById('userAvatar').textContent = currentUser.username.charAt(0).toUpperCase();
-}
-
-function toggleUserMenu() {
-    document.getElementById('userMenu').classList.toggle('active');
-}
-
-// ========== 页面导航 ==========
-function showPage(pageId) {
-    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-    document.getElementById(pageId).classList.add('active');
-    
-    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-    // 更新底部导航高亮
-}
-
-// ========== 啤酒列表 ==========
-function renderBeerList() {
-    const container = document.getElementById('beerList');
-    container.innerHTML = beers.map(beer => `
-        <div class="beer-card" onclick="showBeerDetail('${beer.id}')">
-            <div class="beer-icon">🍺</div>
-            <div class="beer-info">
-                <div class="beer-name">${beer.name}</div>
-                <div class="beer-tag">${beer.tag || ''}</div>
-                <div class="beer-abv">${beer.abv ? beer.abv + '%' : ''}</div>
-            </div>
-        </div>
-    `).join('');
-}
-
-function showBeerDetail(beerId) {
-    const beer = beers.find(b => b.id === beerId);
-    if (!beer) return;
-    
-    // 简单弹窗显示
-    toast(`${beer.name} - ${beer.tag || ''} ${beer.abv ? beer.abv + '%' : ''}`);
-}
-
-// ========== 转盘 ==========
-function openWheel() {
-    document.getElementById('wheelModal').classList.add('active');
-    document.getElementById('wheelResult').style.display = 'none';
-    document.getElementById('wheelBtn').disabled = false;
-    drawWheel();
-}
-
-function closeWheel() {
-    document.getElementById('wheelModal').classList.remove('active');
-}
-
-function drawWheel() {
-    const canvas = document.getElementById('wheelCanvas');
-    const ctx = canvas.getContext('2d');
-    const centerX = 140;
-    const centerY = 140;
-    const radius = 130;
-    
-    const segments = beers.slice(0, Math.min(beers.length, 12));
-    
-    ctx.clearRect(0, 0, 280, 280);
-    
-    const anglePerSegment = (2 * Math.PI) / segments.length;
-    
-    segments.forEach((beer, i) => {
-        const startAngle = i * anglePerSegment + wheelAngle;
-        const endAngle = (i + 1) * anglePerSegment + wheelAngle;
-        
-        // 颜色
-        const hue = (i * 30) % 360;
-        ctx.fillStyle = `hsl(${hue}, 70%, 25%)`;
-        ctx.beginPath();
-        ctx.moveTo(centerX, centerY);
-        ctx.arc(centerX, centerY, radius, startAngle, endAngle);
-        ctx.closePath();
-        ctx.fill();
-        
-        // 边框
-        ctx.strokeStyle = 'rgba(255,255,255,0.2)';
-        ctx.lineWidth = 2;
-        ctx.stroke();
-        
-        // 文字
-        ctx.save();
-        ctx.translate(centerX, centerY);
-        ctx.rotate(startAngle + anglePerSegment / 2);
-        ctx.fillStyle = '#fff';
-        ctx.font = '11px sans-serif';
-        ctx.textAlign = 'right';
-        ctx.fillText(beer.name.substring(0, 5), radius - 10, 4);
-        ctx.restore();
-    });
-    
-    // 中心圆
-    ctx.fillStyle = '#ff1493';
-    ctx.beginPath();
-    ctx.arc(centerX, centerY, 25, 0, 2 * Math.PI);
-    ctx.fill();
-    ctx.fillStyle = '#fff';
-    ctx.font = 'bold 12px sans-serif';
-    ctx.textAlign = 'center';
-    ctx.fillText('🍺', centerX, centerY + 4);
-}
-
-function spinWheel() {
-    if (wheelSpinning) return;
-    wheelSpinning = true;
-    document.getElementById('wheelBtn').disabled = true;
-    
-    const duration = 4000 + Math.random() * 2000;
-    const targetAngle = Math.random() * 2 * Math.PI + 10 * Math.PI;
-    const startAngle = wheelAngle;
-    const startTime = Date.now();
-    
-    function animate() {
-        const elapsed = Date.now() - startTime;
-        const progress = Math.min(elapsed / duration, 1);
-        const eased = 1 - Math.pow(1 - progress, 3);
-        
-        wheelAngle = startAngle + targetAngle * eased;
-        drawWheel();
-        
-        if (progress < 1) {
-            requestAnimationFrame(animate);
-        } else {
-            wheelSpinning = false;
-            showWheelResult();
-        }
+function skipLogin() {
+    closeLoginModal();
+    if (pendingDrinkAction) {
+        pendingDrinkAction();
+        pendingDrinkAction = null;
     }
-    
-    animate();
 }
 
-function showWheelResult() {
-    const segments = beers.slice(0, Math.min(beers.length, 12));
-    const anglePerSegment = (2 * Math.PI) / segments.length;
-    const normalizedAngle = ((wheelAngle % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI);
-    const winningIndex = Math.floor((2 * Math.PI - normalizedAngle + anglePerSegment / 2) / anglePerSegment) % segments.length;
-    const winner = segments[winningIndex];
-    
-    document.getElementById('wheelResult').style.display = 'block';
-    document.getElementById('wheelResultName').textContent = winner.name;
-    document.getElementById('wheelBtn').disabled = false;
+// 检查登录状态
+function checkLoginStatus() {
+    var token = localStorage.getItem('beerlab_token');
+    var user = localStorage.getItem('beerlab_user');
+    if (token && user) {
+        isLoggedIn = true;
+        currentUser = JSON.parse(user);
+    }
 }
 
-// ========== 心情挑酒 ==========
-function openMoodPicker() {
-    document.getElementById('moodModal').classList.add('active');
-    document.getElementById('moodResult').style.display = 'none';
-    moodSkipCount = 0;
+// 修改 openDrankModal - 需要登录才能记录
+var originalOpenDrankModal = null;
+
+// 包装饮酒记录函数
+function openDrankModalWithAuth() {
+    openDrankModal();
 }
 
-function closeMood() {
-    document.getElementById('moodModal').classList.remove('active');
-}
-
-document.querySelectorAll('.mood-tag').forEach(tag => {
-    tag.addEventListener('click', function() {
-        document.querySelectorAll('.mood-tag').forEach(t => t.classList.remove('selected'));
-        this.classList.add('selected');
-        selectMood(this.dataset.mood);
-    });
-});
-
-function selectMood(mood) {
-    const moodMap = {
-        happy: { desc: '开心就要喝点好的！', tags: ['IPA', '果味'] },
-        sad: { desc: '借酒消愁？来点顺滑的', tags: ['Stout', 'Witbier'] },
-        stressed: { desc: '压力山大，来一杯放松下', tags: ['Lager', 'Pilsner'] },
-        relaxed: { desc: '悠闲时光，细细品味', tags: ['Witbier', 'Lambic'] },
-        excited: { desc: '太嗨了，整点烈的！', tags: ['IPA', 'Stout'] },
-        tired: { desc: '累了，喝点清爽的', tags: ['Lager', 'Pilsner'] },
-        romantic: { desc: '浪漫时刻，来点特别的', tags: ['果味', 'Lambic'] },
-        social: { desc: '聚会必备，大家一起嗨', tags: ['Lager', 'IPA'] }
-    };
-    
-    const prefs = moodMap[mood] || moodMap.happy;
-    
-    // 根据心情筛选
-    const candidates = beers.filter(b => {
-        if (!prefs.tags) return true;
-        return prefs.tags.some(t => b.tag && b.tag.includes(t));
-    });
-    
-    if (candidates.length === 0) {
-        currentMoodBeer = beers[Math.floor(Math.random() * beers.length)];
+function saveDrinkWithAuth(name) {
+    if (!isLoggedIn) {
+        openLoginModal(function() {
+            saveDrink(name);
+        });
     } else {
-        currentMoodBeer = candidates[Math.floor(Math.random() * candidates.length)];
-    }
-    
-    document.getElementById('moodResult').style.display = 'block';
-    document.getElementById('moodResultIcon').textContent = '🍺';
-    document.getElementById('moodResultName').textContent = currentMoodBeer.name;
-    document.getElementById('moodResultDesc').textContent = currentMoodBeer.description || prefs.desc;
-    document.getElementById('skipCount').textContent = '';
-}
-
-function skipMoodBeer() {
-    moodSkipCount++;
-    if (moodSkipCount >= 3) {
-        document.getElementById('moodResultName').textContent = '你太有自己的主意了';
-        document.getElementById('moodResultDesc').textContent = '我无法推荐出你的心情酒款 😤';
-        return;
-    }
-    
-    // 随机选一款不同的酒
-    var newBeer;
-    do {
-        newBeer = beers[Math.floor(Math.random() * beers.length)];
-    } while (newBeer.name === currentMoodBeer?.name && beers.length > 1);
-    currentMoodBeer = newBeer;
-    
-    document.getElementById('moodResultIcon').textContent = '🍺';
-    document.getElementById('moodResultName').textContent = currentMoodBeer.name;
-    document.getElementById('moodResultDesc').textContent = currentMoodBeer.description || '';
-    document.getElementById('skipCount').textContent = `剩余 ${3 - moodSkipCount} 次`;
-}
-
-// ========== 游戏 ==========
-function openGames() {
-    document.getElementById('gameModal').classList.add('active');
-    document.getElementById('monsterGameArea').style.display = 'none';
-}
-
-function closeGame() {
-    endMonsterGame();
-    document.getElementById('gameModal').classList.remove('active');
-}
-
-// 怪兽游戏
-function startMonsterGame() {
-    document.getElementById('monsterGameArea').style.display = 'block';
-    monsterScore = 0;
-    monsterTarget = 1 + Math.floor(Math.random() * 20);
-    isMonsterGameRunning = true;
-    
-    document.getElementById('monsterScore').textContent = monsterScore;
-    
-    const area = document.getElementById('monsterArea');
-    area.innerHTML = '';
-    
-    monsterSpawnInterval = setInterval(spawnMonster, 600);
-    for (let i = 0; i < 3; i++) {
-        setTimeout(spawnMonster, i * 200);
+        saveDrink(name);
     }
 }
 
-function spawnMonster() {
-    if (!isMonsterGameRunning) return;
-    
-    const monsters = ['👾', '👻', '🤖', '👹', '👺', '💀', '👽', '🎃', '🤡', '🐙'];
-    const area = document.getElementById('monsterArea');
-    const monster = document.createElement('div');
-    monster.className = 'monster';
-    monster.textContent = monsters[Math.floor(Math.random() * monsters.length)];
-    monster.style.left = Math.random() * (area.offsetWidth - 60) + 'px';
-    monster.style.top = Math.random() * (area.offsetHeight - 60) + 'px';
-    
-    monster.onclick = () => hitMonster(monster);
-    area.appendChild(monster);
-    
-    setTimeout(() => { if (monster.parentNode) monster.remove(); }, 2000);
-}
-
-function hitMonster(monster) {
-    if (!isMonsterGameRunning || monster.classList.contains('hit')) return;
-    monster.classList.add('hit');
-    monsterScore++;
-    document.getElementById('monsterScore').textContent = monsterScore;
-    
-    setTimeout(() => monster.remove(), 300);
-    
-    if (monsterScore >= monsterTarget) {
-        explodeBottle();
-    }
-}
-
-function explodeBottle() {
-    isMonsterGameRunning = false;
-    clearInterval(monsterSpawnInterval);
-    
-    const area = document.getElementById('monsterArea');
-    area.innerHTML = '<div class="bottle-explode">🍺💥</div>';
-    
-    toast('💥 酒瓶爆炸了！倒霉蛋喝酒！');
-    
-    // 保存游戏记录
-    if (!isGuest) {
-        fetch(`${API_BASE}/game-records`, {
-            method: 'POST',
-            headers: {'Content-Type':'application/json', 'Authorization':`Bearer ${localStorage.getItem('beerlab_token')}`},
-            body: JSON.stringify({gameType:'monster', score:monsterScore, result:{target:monsterTarget}})
-        }).catch(() => {});
-    }
-    
-    setTimeout(() => {
-        area.innerHTML = '';
-        document.getElementById('monsterGameArea').style.display = 'none';
-    }, 2000);
-}
-
-function endMonsterGame() {
-    isMonsterGameRunning = false;
-    clearInterval(monsterSpawnInterval);
-}
-
-// ========== 饮酒记录 ==========
-async function loadDrankRecords() {
-    if (isGuest) return;
-    
-    try {
-        const res = await fetch(`${API_BASE}/drank-records`, {
-            headers: {'Authorization':`Bearer ${localStorage.getItem('beerlab_token')}`}
+// 包装怪物游戏记一杯
+function monsterDrinkWithAuth() {
+    if (!isLoggedIn) {
+        openLoginModal(function() {
+            monsterDrink();
         });
-        const records = await res.json();
-        renderDrankRecords(records);
-    } catch (e) {
-        console.error('加载记录失败', e);
-    }
-}
-
-function renderDrankRecords(records) {
-    const container = document.getElementById('drankRecordList');
-    
-    // 填充下拉框
-    const select = document.getElementById('drankBeerSelect');
-    select.innerHTML = '<option value="">请选择...</option>' + 
-        beers.map(b => `<option value="${b.id}">${b.name}</option>`).join('');
-    
-    if (records.length === 0) {
-        container.innerHTML = '<p style="text-align:center;color:rgba(255,255,255,0.3)">还没有记录</p>';
-        return;
-    }
-    
-    container.innerHTML = records.slice(0, 10).map(r => `
-        <div class="record-item">
-            <div>
-                <div class="beer">${r.beer_name || '未知酒款'}</div>
-                <div class="date">${new Date(r.drank_at).toLocaleDateString()}</div>
-            </div>
-            <div class="rating">${'⭐'.repeat(r.rating || 0)}</div>
-        </div>
-    `).join('');
-}
-
-async function addDrankRecord() {
-    if (isGuest) {
-        toast('请先登录');
-        return;
-    }
-    
-    const beerId = document.getElementById('drankBeerSelect').value;
-    const mood = document.getElementById('drankMood').value;
-    
-    if (!beerId) {
-        toast('请选择酒款');
-        return;
-    }
-    
-    try {
-        await fetch(`${API_BASE}/drank-records`, {
-            method: 'POST',
-            headers: {'Content-Type':'application/json', 'Authorization':`Bearer ${localStorage.getItem('beerlab_token')}`},
-            body: JSON.stringify({beerId, mood, drankAt: new Date().toISOString()})
-        });
-        
-        toast('记录成功！🍻');
-        loadDrankRecords();
-    } catch (e) {
-        toast('记录失败');
-    }
-}
-
-function openDrankModal() {
-    document.getElementById('drankModal').classList.add('active');
-}
-
-function closeDrank() {
-    document.getElementById('drankModal').classList.remove('active');
-}
-
-// ========== 收藏 ==========
-async function loadUserCollection() {
-    if (isGuest) return;
-    
-    try {
-        const res = await fetch(`${API_BASE}/user-beers`, {
-            headers: {'Authorization':`Bearer ${localStorage.getItem('beerlab_token')}`}
-        });
-        userCollection = await res.json();
-    } catch (e) {
-        userCollection = [];
-    }
-}
-
-function openCollection() {
-    document.getElementById('collectionModal').classList.add('active');
-    renderCollection();
-}
-
-function closeCollection() {
-    document.getElementById('collectionModal').classList.remove('active');
-}
-
-function renderCollection() {
-    const container = document.getElementById('collectionList');
-    
-    if (userCollection.length === 0) {
-        container.innerHTML = '<p style="text-align:center;color:rgba(255,255,255,0.3)">还没有收藏</p>';
-        return;
-    }
-    
-    container.innerHTML = userCollection.map(item => `
-        <div class="beer-card">
-            <div class="beer-icon">🍺</div>
-            <div class="beer-info">
-                <div class="beer-name">${item.name}</div>
-                <div class="beer-tag">${item.tag || ''}</div>
-                <div class="beer-abv">${item.abv ? item.abv + '%' : ''}</div>
-            </div>
-        </div>
-    `).join('');
-}
-
-// ========== 好友 ==========
-async function loadFriends() {
-    try {
-        const res = await fetch(`${API_BASE}/friends`, {
-            headers: {'Authorization':`Bearer ${localStorage.getItem('beerlab_token')}`}
-        });
-        return await res.json();
-    } catch (e) {
-        return [];
-    }
-}
-
-async function showFriends() {
-    toggleUserMenu();
-    document.getElementById('friendsModal').classList.add('active');
-    
-    const friends = await loadFriends();
-    const container = document.getElementById('friendList');
-    
-    if (friends.length === 0) {
-        container.innerHTML = '<p style="text-align:center;color:rgba(255,255,255,0.3)">还没有好友</p>';
     } else {
-        container.innerHTML = friends.map(f => `
-            <div class="record-item">
-                <div class="user-avatar" style="width:40px;height:40px;font-size:16px">${f.username.charAt(0)}</div>
-                <div style="margin-left:12px">${f.username}</div>
-            </div>
-        `).join('');
+        monsterDrink();
     }
 }
 
-async function searchFriend() {
-    const query = document.getElementById('friendSearch').value;
-    const container = document.getElementById('friendSearchResult');
-    
-    if (!query) return;
-    
-    try {
-        const res = await fetch(`${API_BASE}/users/search?q=${encodeURIComponent(query)}`, {
-            headers: {'Authorization':`Bearer ${localStorage.getItem('beerlab_token')}`}
-        });
-        const users = await res.json();
-        
-        if (users.length === 0) {
-            container.innerHTML = '<p style="text-align:center;color:rgba(255,255,255,0.3)">没有找到用户</p>';
-        } else {
-            container.innerHTML = users.map(u => `
-                <div class="record-item">
-                    <div class="user-avatar" style="width:40px;height:40px;font-size:16px">${u.username.charAt(0)}</div>
-                    <div style="margin-left:12px">${u.username}</div>
-                    <button class="btn btn-secondary" style="width:auto;padding:8px 12px;margin-left:auto" onclick="sendFriendReq('${u.id}')">加好友</button>
-                </div>
-            `).join('');
-        }
-    } catch (e) {
-        container.innerHTML = '<p style="color:#ff4444">搜索失败</p>';
-    }
-}
-
-async function sendFriendReq(friendId) {
-    try {
-        await fetch(`${API_BASE}/friends/request`, {
-            method: 'POST',
-            headers: {'Content-Type':'application/json', 'Authorization':`Bearer ${localStorage.getItem('beerlab_token')}`},
-            body: JSON.stringify({friendId})
-        });
-        toast('已发送好友请求！');
-    } catch (e) {
-        toast('发送失败');
-    }
-}
-
-function closeFriends() {
-    document.getElementById('friendsModal').classList.remove('active');
-}
-
-async function showInviteCode() {
-    toggleUserMenu();
-    
-    if (isGuest) {
-        toast('请先登录');
-        return;
-    }
-    
-    try {
-        const res = await fetch(`${API_BASE}/invite-codes`, {
-            method: 'POST',
-            headers: {'Authorization':`Bearer ${localStorage.getItem('beerlab_token')}`}
-        });
-        const data = await res.json();
-        prompt('邀请码（分享给好友）:', data.code);
-    } catch (e) {
-        toast('生成邀请码失败');
-    }
-}
-
-// ========== MBTI ==========
-function openMBTI() {
-    toast('MBTI 功能开发中... 🛠️');
-}
-
-// ========== 工具 ==========
-function toast(msg) {
-    const el = document.getElementById('toast');
-    el.textContent = msg;
-    el.classList.add('show');
-    setTimeout(() => el.classList.remove('show'), 2000);
-}
-
-// 点击其他地方关闭菜单
-document.addEventListener('click', function(e) {
-    if (!e.target.closest('.user-info') && !e.target.closest('.user-menu')) {
-        document.getElementById('userMenu').classList.remove('active');
-    }
-});
-
-// ========== 启动 ==========
-init();
-</script>
+// 页面加载时检查登录
+checkLoginStatus();
+    </script>
 </body>
 </html>
