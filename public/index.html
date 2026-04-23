@@ -152,6 +152,10 @@
             position: fixed;
             z-index: 9999;
             pointer-events: none;
+            top: env(safe-area-inset-top);
+            left: env(safe-area-inset-left);
+            right: env(safe-area-inset-right);
+            bottom: env(safe-area-inset-bottom);
         }
         .tip-container.show {
             pointer-events: auto;
@@ -187,11 +191,10 @@
         /* 游戏弹窗 */
         .game-modal {
             position: fixed;
-            top: 0; left: 0; right: 0; bottom: 0;
-            top: env(safe-area-inset-top);
-            left: env(safe-area-inset-left);
-            right: env(safe-area-inset-right);
-            bottom: env(safe-area-inset-bottom);
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
             background: rgba(0,0,0,0.85);
             z-index: 10000;
             display: none;
@@ -200,6 +203,8 @@
             padding: 20px;
             padding-top: max(20px, env(safe-area-inset-top));
             padding-bottom: max(20px, env(safe-area-inset-bottom));
+            padding-left: max(20px, env(safe-area-inset-left));
+            padding-right: max(20px, env(safe-area-inset-right));
             backdrop-filter: blur(10px);
         }
         .game-modal.show { display: flex; }
@@ -212,7 +217,7 @@
             border: 1px solid rgba(255,20,147,0.3);
             box-shadow: 0 20px 60px rgba(0,0,0,0.5);
             max-height: calc(100vh - 60px);
-            max-height: calc(100vh - 60px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+            max-height: calc(100vh - 40px - env(safe-area-inset-top));
             overflow-y: auto;
         }
         .game-header {
@@ -1381,14 +1386,15 @@ function moveTooltip(d) {
     var tipHeight = 300;
     var offsetX = 50;
     var offsetY = -80;
+    var safeTop = 20; // 刘海屏留白
     
     var x = d.x + offsetX;
     var y = d.y + offsetY;
     
     // 边界检测
     if (x + tipWidth > width - 20) x = d.x - tipWidth - 40;
-    if (y < 10) y = 10;
-    if (y + tipHeight > height - 100) y = height - 100 - tipHeight;
+    if (y < safeTop) y = safeTop;
+    if (y + tipHeight > height - 120) y = height - 120 - tipHeight;
     
     tipContainer.style.left = x + 'px';
     tipContainer.style.top = y + 'px';
