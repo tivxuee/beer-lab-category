@@ -499,31 +499,31 @@
     
     <script>
 var wines = [
-    // 左上 - 清爽果香型
-    {name:'莫斯卡托',nameEn:'Moscato',abv:'5-8%',style:'意大利甜白，葡萄品种自带荔枝和蜜桃香气，简单易饮。',colorHex:'#F5DEB3',brand:'asti、dasti',tags:['甜白','入门首选'],
+    // 左上 - 清爽果香型（颜色调暗，对眼睛友好）
+    {name:'莫斯卡托',nameEn:'Moscato',abv:'5-8%',style:'意大利甜白，葡萄品种自带荔枝和蜜桃香气，简单易饮。',colorHex:'#C4A06A',brand:'asti、dasti',tags:['甜白','入门首选'],icon:'✦',
      glossary:['Moscato：麝香葡萄，天然果香','DOCG：意大利最高品质等级'],
      x:0.2, y:0.2},
-    {name:'普罗塞克',nameEn:'Prosecco',abv:'11-12%',style:'意大利起泡酒，比香槟更清新，果香主导，适合聚会。',colorHex:'#FFF8DC',brand:'La Marca、Martini',tags:['起泡','清爽'],
+    {name:'普罗塞克',nameEn:'Prosecco',abv:'11-12%',style:'意大利起泡酒，比香槟更清新，果香主导，适合聚会。',colorHex:'#C8B87A',brand:'La Marca、Martini',tags:['起泡','清爽'],icon:'✦',
      glossary:['Charmat法：罐内二次发酵，成本更低','与香槟区别：品种和工艺不同'],
      x:0.25, y:0.3},
-    {name:'长相思',nameEn:'Sauvignon Blanc',abv:'12-14%',style:'新西兰国宝，青草、百香果、猫尿香味，酸度清爽。',colorHex:'#E0FFFF',brand:'Cloudy Bay、长相思',tags:['白葡萄酒','酸度高'],
+    {name:'长相思',nameEn:'Sauvignon Blanc',abv:'12-14%',style:'新西兰国宝，青草、百香果、猫尿香味，酸度清爽。',colorHex:'#8BBF8B',brand:'Cloudy Bay、长相思',tags:['白葡萄酒','酸度高'],icon:'✦',
      glossary:['猫尿味：长相思典型特征，来自甲氧基吡嗪','长相思："长相守"谐音梗'],
      x:0.15, y:0.35},
-    {name:'雷司令',nameEn:'Riesling',abv:'8-12%',style:'德国贵族，从干到甜都有，汽油+蜂蜜+花香是典型香气。',colorHex:'#FFFFE0',brand:'Dr.Loosen、Weingut',tags:['干型可选','陈年潜力'],
+    {name:'雷司令',nameEn:'Riesling',abv:'8-12%',style:'德国贵族，从干到甜都有，汽油+蜂蜜+花香是典型香气。',colorHex:'#C4AE50',brand:'Dr.Loosen、Weingut',tags:['干型可选','陈年潜力'],icon:'✦',
      glossary:['汽油味：雷司令典型，来自TDN化合物','从干到甜：同一葡萄不同风格'],
      x:0.3, y:0.25},
     
     // 右上 - 浓郁复杂型
-    {name:'霞多丽',nameEn:'Chardonnay',abv:'13-14%',style:'白葡萄酒之王，从清爽到浓郁都有，过桶版有黄油爆米花香。',colorHex:'#FAFAD2',brand:'Louis Jadot、Cloudy Bay',tags:['过桶','饱满'],
+    {name:'霞多丽',nameEn:'Chardonnay',abv:'13-14%',style:'白葡萄酒之王，从清爽到浓郁都有，过桶版有黄油爆米花香。',colorHex:'#B8A878',brand:'Louis Jadot、Cloudy Bay',tags:['过桶','饱满'],icon:'✦',
      glossary:['过桶：橡木桶陈年带来香草、黄油','不过桶：保持清爽果香'],
      x:0.7, y:0.2},
-    {name:'维欧尼',nameEn:'Viognier',abv:'13-14%',style:'浓郁白葡萄酒，杏子、蜂蜜、香料香气，酒体饱满。',colorHex:'#FFE4B5',brand:'Condrieu、Chateau-Grillet',tags:['小众','芬芳'],
+    {name:'维欧尼',nameEn:'Viognier',abv:'13-14%',style:'浓郁白葡萄酒，杏子、蜂蜜、香料香气，酒体饱满。',colorHex:'#C09060',brand:'Condrieu、Chateau-Grillet',tags:['小众','芬芳'],icon:'✦',
      glossary:['Condrieu：维欧尼最贵产区','晚熟：需要充足阳光'],
      x:0.75, y:0.35},
-    {name:'贵腐酒',nameEn:'Sauternes',abv:'13-14%',style:'被贵腐菌侵染的葡萄酿造，极甜极浓郁，蜂蜜、杏脯、焦糖。',colorHex:'#FFD700',brand:'Chateau dYquem滴金',tags:['极甜','珍贵'],
+    {name:'贵腐酒',nameEn:'Sauternes',abv:'13-14%',style:'被贵腐菌侵染的葡萄酿造，极甜极浓郁，蜂蜜、杏脯、焦糖。',colorHex:'#D4A820',brand:'Chateau dYquem滴金',tags:['极甜','珍贵'],
      glossary:['贵腐菌：Botrytis，浓缩糖分','滴金酒庄：苏玳最贵'],
      x:0.8, y:0.3},
-    {name:'冰酒',nameEn:'Icewine',abv:'8-10%',style:'冰冻葡萄压榨，极其甜润，蜂蜜和热带水果香。',colorHex:'#FFEFD5',brand:'Inniskillin、云岭',tags:['加拿大','极甜'],
+    {name:'冰酒',nameEn:'Icewine',abv:'8-10%',style:'冰冻葡萄压榨，极其甜润，蜂蜜和热带水果香。',colorHex:'#C8B878',brand:'Inniskillin、云岭',tags:['加拿大','极甜'],
      glossary:['零下8度采收：葡萄水分结冰，只榨出浓缩糖液','VQA：加拿大葡萄酒品质认证'],
      x:0.85, y:0.4},
     
@@ -658,6 +658,19 @@ node.append('circle')
     .attr('fill', 'rgba(255,255,255,0.12)')
     .attr('stroke', 'rgba(255,255,255,0.3)')
     .attr('stroke-width', 1);
+
+// 精致图标点缀（仅部分酒款）
+node.filter(function(d) { return d.wine.icon === '✦'; })
+    .append('text')
+    .attr('class', 'node-icon')
+    .attr('dy', '0.35em')
+    .attr('text-anchor', 'middle')
+    .style('font-size', function(d) { return (d.radius * 0.7) + 'px'; })
+    .style('font-weight', '400')
+    .style('pointer-events', 'none')
+    .style('fill', 'rgba(255,255,255,0.55)')
+    .style('letter-spacing', '-1px')
+    .text('✦');
 
 // 标签
 node.append('text')
