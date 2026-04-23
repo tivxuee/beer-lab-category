@@ -500,55 +500,55 @@
     <script>
 var wines = [
     // 左上 - 清爽果香型
-    {name:'莫斯卡托',nameEn:'Moscato',abv:'5-8%',style:'意大利甜白，葡萄品种自带荔枝和蜜桃香气，简单易饮。',colorHex:'#F5DEB3',brand:'asti、dasti',tags:['甜白','入门首选'],
+    {name:'莫斯卡托',nameEn:'Moscato',abv:'5-8%',style:'意大利甜白，葡萄品种自带荔枝和蜜桃香气，简单易饮。',colorHex:'#F5DEB3',brand:'asti、dasti',tags:['甜白','入门首选'],icon:'🍇',
      glossary:['Moscato：麝香葡萄，天然果香','DOCG：意大利最高品质等级'],
      x:0.2, y:0.2},
-    {name:'普罗塞克',nameEn:'Prosecco',abv:'11-12%',style:'意大利起泡酒，比香槟更清新，果香主导，适合聚会。',colorHex:'#FFF8DC',brand:'La Marca、Martini',tags:['起泡','清爽'],
+    {name:'普罗塞克',nameEn:'Prosecco',abv:'11-12%',style:'意大利起泡酒，比香槟更清新，果香主导，适合聚会。',colorHex:'#FFF8DC',brand:'La Marca、Martini',tags:['起泡','清爽'],icon:'🍾',
      glossary:['Charmat法：罐内二次发酵，成本更低','与香槟区别：品种和工艺不同'],
      x:0.25, y:0.3},
-    {name:'长相思',nameEn:'Sauvignon Blanc',abv:'12-14%',style:'新西兰国宝，青草、百香果、猫尿香味，酸度清爽。',colorHex:'#E0FFFF',brand:'Cloudy Bay、长相思',tags:['白葡萄酒','酸度高'],
+    {name:'长相思',nameEn:'Sauvignon Blanc',abv:'12-14%',style:'新西兰国宝，青草、百香果、猫尿香味，酸度清爽。',colorHex:'#E0FFFF',brand:'Cloudy Bay、长相思',tags:['白葡萄酒','酸度高'],icon:'🌿',
      glossary:['猫尿味：长相思典型特征，来自甲氧基吡嗪','长相思："长相守"谐音梗'],
      x:0.15, y:0.35},
-    {name:'雷司令',nameEn:'Riesling',abv:'8-12%',style:'德国贵族，从干到甜都有，汽油+蜂蜜+花香是典型香气。',colorHex:'#FFFFE0',brand:'Dr.Loosen、Weingut',tags:['干型可选','陈年潜力'],
+    {name:'雷司令',nameEn:'Riesling',abv:'8-12%',style:'德国贵族，从干到甜都有，汽油+蜂蜜+花香是典型香气。',colorHex:'#FFFFE0',brand:'Dr.Loosen、Weingut',tags:['干型可选','陈年潜力'],icon:'🍯',
      glossary:['汽油味：雷司令典型，来自TDN化合物','从干到甜：同一葡萄不同风格'],
      x:0.3, y:0.25},
     
     // 右上 - 浓郁复杂型
-    {name:'霞多丽',nameEn:'Chardonnay',abv:'13-14%',style:'白葡萄酒之王，从清爽到浓郁都有，过桶版有黄油爆米花香。',colorHex:'#FAFAD2',brand:'Louis Jadot、Cloudy Bay',tags:['过桶','饱满'],
+    {name:'霞多丽',nameEn:'Chardonnay',abv:'13-14%',style:'白葡萄酒之王，从清爽到浓郁都有，过桶版有黄油爆米花香。',colorHex:'#FAFAD2',brand:'Louis Jadot、Cloudy Bay',tags:['过桶','饱满'],icon:'🥂',
      glossary:['过桶：橡木桶陈年带来香草、黄油','不过桶：保持清爽果香'],
      x:0.7, y:0.2},
-    {name:'维欧尼',nameEn:'Viognier',abv:'13-14%',style:'浓郁白葡萄酒，杏子、蜂蜜、香料香气，酒体饱满。',colorHex:'#FFE4B5',brand:'Condrieu、Chateau-Grillet',tags:['小众','芬芳'],
+    {name:'维欧尼',nameEn:'Viognier',abv:'13-14%',style:'浓郁白葡萄酒，杏子、蜂蜜、香料香气，酒体饱满。',colorHex:'#FFE4B5',brand:'Condrieu、Chateau-Grillet',tags:['小众','芬芳'],icon:'🌸',
      glossary:['Condrieu：维欧尼最贵产区','晚熟：需要充足阳光'],
      x:0.75, y:0.35},
-    {name:'贵腐酒',nameEn:'Sauternes',abv:'13-14%',style:'被贵腐菌侵染的葡萄酿造，极甜极浓郁，蜂蜜、杏脯、焦糖。',colorHex:'#FFD700',brand:'Chateau dYquem滴金',tags:['极甜','珍贵'],
+    {name:'贵腐酒',nameEn:'Sauternes',abv:'13-14%',style:'被贵腐菌侵染的葡萄酿造，极甜极浓郁，蜂蜜、杏脯、焦糖。',colorHex:'#FFD700',brand:'Chateau dYquem滴金',tags:['极甜','珍贵'],icon:'🏆',
      glossary:['贵腐菌：Botrytis，浓缩糖分','滴金酒庄：苏玳最贵'],
      x:0.8, y:0.3},
-    {name:'冰酒',nameEn:'Icewine',abv:'8-10%',style:'冰冻葡萄压榨，极其甜润，蜂蜜和热带水果香。',colorHex:'#FFEFD5',brand:'Inniskillin、云岭',tags:['加拿大','极甜'],
+    {name:'冰酒',nameEn:'Icewine',abv:'8-10%',style:'冰冻葡萄压榨，极其甜润，蜂蜜和热带水果香。',colorHex:'#FFEFD5',brand:'Inniskillin、云岭',tags:['加拿大','极甜'],icon:'❄️',
      glossary:['零下8度采收：葡萄水分结冰，只榨出浓缩糖液','VQA：加拿大葡萄酒品质认证'],
      x:0.85, y:0.4},
     
     // 左下 - 清爽矿物型
-    {name:'黑皮诺',nameEn:'Pinot Noir',abv:'12-13%',style:'红葡萄酒中最小清新，草莓、樱桃香气，单宁轻柔。',colorHex:'#8B0000',brand:'DRC、勃艮第',tags:['红酒入门','轻柔'],
+    {name:'黑皮诺',nameEn:'Pinot Noir',abv:'12-13%',style:'红葡萄酒中最小清新，草莓、樱桃香气，单宁轻柔。',colorHex:'#8B0000',brand:'DRC、勃艮第',tags:['红酒入门','轻柔'],icon:'🍷',
      glossary:['Pinot：松果状葡萄串','DRC：罗曼尼康帝，勃艮第酒王'],
      x:0.2, y:0.7},
-    {name:'佳美',nameEn:'Gamay',abv:'12-13%',style:'博若莱特产，薄荷、樱桃、香蕉香气，简单果香。',colorHex:'#DC143C',brand:'Beaujolais、Morgon',tags:['博若莱','新酒'],
+    {name:'佳美',nameEn:'Gamay',abv:'12-13%',style:'博若莱特产，薄荷、樱桃、香蕉香气，简单果香。',colorHex:'#DC143C',brand:'Beaujolais、Morgon',tags:['博若莱','新酒'],icon:'🍒',
      glossary:['博若莱新酒：当年酿当年喝','二氧化碳浸渍：保持果香'],
      x:0.25, y:0.8},
-    {name:'品丽珠',nameEn:'Cabernet Franc',abv:'12-13%',style:'波尔多右岸主力，紫罗兰、覆盆子香气，比赤霞珠轻柔。',colorHex:'#7222F3',brand:'Cheval Blanc、右岸名庄',tags:['波尔多','优雅'],
+    {name:'品丽珠',nameEn:'Cabernet Franc',abv:'12-13%',style:'波尔多右岸主力，紫罗兰、覆盆子香气，比赤霞珠轻柔。',colorHex:'#7222F3',brand:'Cheval Blanc、右岸名庄',tags:['波尔多','优雅'],icon:'🌺',
      glossary:['右岸：波尔多品丽珠为主的产区','波尔多混酿：赤霞珠+品丽珠+美乐'],
      x:0.3, y:0.75},
     
     // 右下 - 浓郁重桶型
-    {name:'赤霞珠',nameEn:'Cabernet Sauvignon',abv:'13-14%',style:'全球种植面积最广，黑醋栗、雪松、烟草，重单宁。',colorHex:'#722F37',brand:'波尔多、纳帕、奔富',tags:['重单宁','过桶'],
+    {name:'赤霞珠',nameEn:'Cabernet Sauvignon',abv:'13-14%',style:'全球种植面积最广，黑醋栗、雪松、烟草，重单宁。',colorHex:'#722F37',brand:'波尔多、纳帕、奔富',tags:['重单宁','过桶'],icon:'🌲',
      glossary:['单宁：来自葡萄皮，让口腔发涩','赤霞珠：中国最早引进的品种'],
      x:0.8, y:0.65},
-    {name:'西拉',nameEn:'Shiraz/Syrah',abv:'14-15%',style:'澳洲叫设拉子，法国叫西拉，黑胡椒、烤肉、香料香气。',colorHex:'#4B0082',brand:'Penfolds Grange、隆河',tags:['浓郁','辛辣'],
+    {name:'西拉',nameEn:'Shiraz/Syrah',abv:'14-15%',style:'澳洲叫设拉子，法国叫西拉，黑胡椒、烤肉、香料香气。',colorHex:'#4B0082',brand:'Penfolds Grange、隆河',tags:['浓郁','辛辣'],icon:'🔥',
      glossary:['GSM混酿：歌海娜+西拉+慕合怀特','设拉子：奔富 Grange 用的品种'],
      x:0.85, y:0.75},
-    {name:'美乐',nameEn:'Merlot',abv:'13-14%',style:'波尔多的温柔派，柔软易饮，李子、巧克力香气。',colorHex:'#8B4513',brand:'Chateau Pétrus、右岸',tags:['柔和','果香'],
+    {name:'美乐',nameEn:'Merlot',abv:'13-14%',style:'波尔多的温柔派，柔软易饮，李子、巧克力香气。',colorHex:'#8B4513',brand:'Chateau Pétrus、右岸',tags:['柔和','果香'],icon:'🍫',
      glossary:['Pétrus：柏翠酒庄，美乐之王','右岸代表：波美侯产区'],
      x:0.75, y:0.8},
-    {name:'马尔贝克',nameEn:'Malbec',abv:'13-14%',style:'阿根廷代表作，黑莓、烟草、紫罗兰，重酒体。',colorHex:'#581845',brand:'Catena Zapata、Achaval Ferrer',tags:['阿根廷','浓郁'],
+    {name:'马尔贝克',nameEn:'Malbec',abv:'13-14%',style:'阿根廷代表作，黑莓、烟草、紫罗兰，重酒体。',colorHex:'#581845',brand:'Catena Zapata、Achaval Ferrer',tags:['阿根廷','浓郁'],icon:'🏔️',
      glossary:['马尔贝克：法国叫Côt','门多萨：阿根廷马尔贝克最佳产区'],
      x:0.82, y:0.85}
 ];
@@ -651,13 +651,14 @@ node.append('circle')
     .attr('stroke-width', 3)
     .style('filter', 'drop-shadow(0 0 15px rgba(255,255,255,0.3))');
 
-// 高光点
-node.append('circle')
-    .attr('class', 'shine')
-    .attr('cx', function(d) { return -d.radius * 0.25; })
-    .attr('cy', function(d) { return -d.radius * 0.25; })
-    .attr('r', function(d) { return d.radius * 0.2; })
-    .attr('fill', 'rgba(255,255,255,0.35)');
+// Emoji 图标（覆盖在球上，文字阴影保证可读性）
+node.append('text')
+    .attr('class', 'node-icon')
+    .attr('dy', '0.35em')
+    .attr('text-anchor', 'middle')
+    .style('font-size', function(d) { return (d.radius * 1.1) + 'px'; })
+    .style('pointer-events', 'none')
+    .text(function(d) { return d.wine.icon || '🍷'; });
 
 // 标签
 node.append('text')
