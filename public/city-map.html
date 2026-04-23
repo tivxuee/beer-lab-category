@@ -184,7 +184,7 @@
     
     <!-- 地图区域 -->
     <div class="map-container" id="mapContainer">
-        <img src="shanghai-map.png" alt="上海精酿地图" />
+        <img src="shanghai-map.webp" alt="上海精酿地图" />
     </div>
     
     <!-- 底部提示 -->
@@ -204,16 +204,14 @@
     
     <script>
         function selectCity(city) {
-            // 更新按钮状态
             document.querySelectorAll('.city-btn').forEach(btn => {
                 btn.classList.remove('active');
             });
             event.target.classList.add('active');
             
-            // 更新地图
             const mapContainer = document.getElementById('mapContainer');
             if (city === 'shanghai') {
-                mapContainer.innerHTML = '<img src="shanghai-map.png" alt="上海精酿地图" />';
+                mapContainer.innerHTML = '<img src="shanghai-map.webp" alt="上海精酿地图" />';
             } else {
                 mapContainer.innerHTML = '<div style="color:rgba(255,255,255,0.5);text-align:center;"><p>🚧 ' + city.toUpperCase() + ' 地图正在制作中...</p></div>';
             }
