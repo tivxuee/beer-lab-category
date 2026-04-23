@@ -58,16 +58,17 @@
             left: 50%;
             transform: translate(-50%, -50%);
             text-align: center;
-            z-index: 50;
-            background: rgba(10,10,10,0.9);
-            backdrop-filter: blur(20px);
-            padding: 24px 40px;
-            border-radius: 20px;
-            box-shadow: 0 0 60px rgba(7222F3,0.2), inset 0 0 1px rgba(7222F3,0.5);
-            border: 1px solid rgba(114,34,243,0.3);
+            z-index: 40;
+            background: rgba(10,10,10,0.35);
+            backdrop-filter: blur(14px);
+            padding: 18px 34px;
+            border-radius: 16px;
+            box-shadow: 0 0 25px rgba(7222F3,0.12), inset 0 0 1px rgba(7222F3,0.35);
+            border: 1px solid rgba(114,34,243,0.35);
+            pointer-events: none;
         }
         .header h1 {
-            font-size: 52px;
+            font-size: 36px;
             font-weight: 900;
             letter-spacing: -2px;
             margin-bottom: 6px;
@@ -75,6 +76,23 @@
         .header h1 span:first-child { color: #fff; }
         .header h1 span:last-child { color: #7222F3; }
         .header .subtitle { color: rgba(255,255,255,0.6); font-size: 11px; letter-spacing: 4px; margin-top: 4px; text-transform: uppercase; }
+        
+        /* 小屏幕：缩小 header */
+        @media (max-width: 480px) {
+            .header {
+                padding: 10px 18px;
+            }
+            .header h1 {
+                font-size: 22px;
+                letter-spacing: -1px;
+                margin-bottom: 2px;
+            }
+            .header .subtitle {
+                font-size: 9px;
+                letter-spacing: 2px;
+                margin-top: 2px;
+            }
+        }
         
         /* 主内容区 */
         .main-content {
@@ -89,6 +107,9 @@
         #network {
             width: 100%;
             height: 100%;
+            z-index: 100;
+            position: relative;
+            isolation: isolate;
         }
         
         /* 坐标轴 - 延伸到边缘 */
