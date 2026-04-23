@@ -77,6 +77,23 @@
         .header h1 span:last-child { color: #ff1493; }
         .header .subtitle { color: rgba(255,255,255,0.6); font-size: 11px; letter-spacing: 4px; margin-top: 4px; text-transform: uppercase; }
         
+        /* 小屏幕：缩小 header */
+        @media (max-width: 480px) {
+            .header {
+                padding: 10px 18px;
+            }
+            .header h1 {
+                font-size: 22px;
+                letter-spacing: -1px;
+                margin-bottom: 2px;
+            }
+            .header .subtitle {
+                font-size: 9px;
+                letter-spacing: 2px;
+                margin-top: 2px;
+            }
+        }
+        
         /* 主内容区 */
         .main-content {
             position: fixed;
