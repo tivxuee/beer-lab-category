@@ -1416,18 +1416,27 @@ function showBeer(d) {
 
 function moveTooltip(d) {
     var tipWidth = 280;
-    var tipHeight = 300;
-    var offsetX = 50;
-    var offsetY = -80;
-    var safeTop = 20; // 刘海屏留白
+    var tipHeight = 320;
+    var screenW = window.innerWidth;
+    var screenH = window.innerHeight;
+    var safeTop = window.innerHeight > 800 ? 20 : 60; // 刘海屏留白（刘海屏手机用60）
     
-    var x = d.x + offsetX;
-    var y = d.y + offsetY;
+    // 默认在右边展开
+    var x = d.x + 50;
+    var y = d.y - 80;
     
-    // 边界检测
-    if (x + tipWidth > width - 20) x = d.x - tipWidth - 40;
+    // 边界检测：右边缘
+    if (x + tipWidth > screenW - 20) {
+        x = d.x - tipWidth - 20; // 放左边
+    }
+    // 左边缘
+    if (x < 20) x = 20;
+    // 上边缘
     if (y < safeTop) y = safeTop;
-    if (y + tipHeight > height - 120) y = height - 120 - tipHeight;
+    // 下边缘（留出底部导航空间）
+    if (y + tipHeight > screenH - 100) {
+        y = screenH - 100 - tipHeight;
+    }
     
     tipContainer.style.left = x + 'px';
     tipContainer.style.top = y + 'px';
