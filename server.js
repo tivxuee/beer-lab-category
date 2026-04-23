@@ -5,7 +5,7 @@ const jwt = require('jsonwebtoken');
 const { v4: uuidv4 } = require('uuid');
 const path = require('path');
 const fs = require('fs');
-const db = require('./database');
+const { initDB, getDB, saveDB } = require('./database');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -35,6 +35,39 @@ function authenticate(req, res, next) {
   }
 }
 
+// Helper functions
+function dbGet(sql, params = []) {
+  const db = getDB();
+  const stmt = db.prepare(sql);
+  stmt.bind(params);
+  if (stmt.step()) {
+    const row = stmt.getAsObject();
+    stmt.free();
+    return row;
+  }
+  stmt.free();
+  return null;
+}
+
+function dbAll(sql, params = []) {
+  const db = getDB();
+  const result = db.exec(sql, params);
+  if (result.length === 0) return [];
+  const columns = result[0].columns;
+  return result[0].values.map(row => {
+    const obj = {};
+    columns.forEach((col, i) => obj[col] = row[i]);
+    return obj;
+  });
+}
+
+function dbRun(sql, params = []) {
+  const db = getDB();
+  db.run(sql, params);
+  saveDB();
+  return db.getRowsModified();
+}
+
 // ============ AUTH ============
 
 app.post('/api/auth/register', async (req, res) => {
@@ -44,7 +77,7 @@ app.post('/api/auth/register', async (req, res) => {
       return res.status(400).json({ error: 'Missing fields' });
     }
 
-    const existing = db.prepare('SELECT id FROM users WHERE email = ?').get(email);
+    const existing = dbGet('SELECT id FROM users WHERE email = ?', [email]);
     if (existing) {
       return res.status(400).json({ error: 'Email already exists' });
     }
@@ -52,8 +85,8 @@ app.post('/api/auth/register', async (req, res) => {
     const id = uuidv4();
     const passwordHash = await bcrypt.hash(password, 10);
     
-    db.prepare('INSERT INTO users (id, email, username, password_hash) VALUES (?, ?, ?, ?)')
-      .run(id, email, username, passwordHash);
+    dbRun('INSERT INTO users (id, email, username, password_hash) VALUES (?, ?, ?, ?)',
+      [id, email, username, passwordHash]);
 
     const token = jwt.sign({ userId: id }, JWT_SECRET, { expiresIn: '30d' });
     res.json({ token, user: { id, email, username } });
@@ -66,7 +99,7 @@ app.post('/api/auth/register', async (req, res) => {
 app.post('/api/auth/login', async (req, res) => {
   try {
     const { email, password } = req.body;
-    const user = db.prepare('SELECT * FROM users WHERE email = ?').get(email);
+    const user = dbGet('SELECT * FROM users WHERE email = ?', [email]);
     
     if (!user) {
       return res.status(401).json({ error: 'Invalid credentials' });
@@ -89,8 +122,7 @@ app.post('/api/auth/login', async (req, res) => {
 });
 
 app.get('/api/auth/me', authenticate, (req, res) => {
-  const user = db.prepare('SELECT id, email, username, created_at FROM users WHERE id = ?')
-    .get(req.userId);
+  const user = dbGet('SELECT id, email, username, created_at FROM users WHERE id = ?', [req.userId]);
   if (!user) return res.status(404).json({ error: 'User not found' });
   res.json(user);
 });
@@ -98,12 +130,12 @@ app.get('/api/auth/me', authenticate, (req, res) => {
 // ============ BEERS ============
 
 app.get('/api/beers', (req, res) => {
-  const beers = db.prepare('SELECT * FROM beers ORDER BY name').all();
+  const beers = dbAll('SELECT * FROM beers ORDER BY name');
   res.json(beers);
 });
 
 app.get('/api/beers/:id', (req, res) => {
-  const beer = db.prepare('SELECT * FROM beers WHERE id = ?').get(req.params.id);
+  const beer = dbGet('SELECT * FROM beers WHERE id = ?', [req.params.id]);
   if (!beer) return res.status(404).json({ error: 'Not found' });
   res.json(beer);
 });
@@ -111,12 +143,10 @@ app.get('/api/beers/:id', (req, res) => {
 // ============ DRANK RECORDS ============
 
 app.get('/api/drank', authenticate, (req, res) => {
-  const records = db.prepare(`
-    SELECT * FROM drank_records 
-    WHERE user_id = ? 
-    ORDER BY drank_at DESC 
-    LIMIT 100
-  `).all(req.userId);
+  const records = dbAll(
+    'SELECT * FROM drank_records WHERE user_id = ? ORDER BY drank_at DESC LIMIT 100',
+    [req.userId]
+  );
   res.json(records);
 });
 
@@ -124,52 +154,50 @@ app.post('/api/drank', authenticate, (req, res) => {
   const { beer_name, location, mood, rating, note } = req.body;
   const id = uuidv4();
   
-  db.prepare(`
-    INSERT INTO drank_records (id, user_id, beer_name, location, mood, rating, note)
-    VALUES (?, ?, ?, ?, ?, ?, ?)
-  `).run(id, req.userId, beer_name, location || '', mood || '', rating || 0, note || '');
+  dbRun(
+    'INSERT INTO drank_records (id, user_id, beer_name, location, mood, rating, note) VALUES (?, ?, ?, ?, ?, ?, ?)',
+    [id, req.userId, beer_name, location || '', mood || '', rating || 0, note || '']
+  );
 
-  const record = db.prepare('SELECT * FROM drank_records WHERE id = ?').get(id);
+  const record = dbGet('SELECT * FROM drank_records WHERE id = ?', [id]);
   res.json(record);
 });
 
 // ============ FAVORITES ============
 
 app.get('/api/favorites', authenticate, (req, res) => {
-  const favs = db.prepare(`
-    SELECT * FROM favorites WHERE user_id = ? ORDER BY created_at DESC
-  `).all(req.userId);
+  const favs = dbAll('SELECT * FROM favorites WHERE user_id = ? ORDER BY created_at DESC', [req.userId]);
   res.json(favs);
 });
 
 app.post('/api/favorites', authenticate, (req, res) => {
   const { beer_name } = req.body;
-  const existing = db.prepare(
-    'SELECT id FROM favorites WHERE user_id = ? AND beer_name = ?'
-  ).get(req.userId, beer_name);
+  const existing = dbGet('SELECT id FROM favorites WHERE user_id = ? AND beer_name = ?', 
+    [req.userId, beer_name]);
   
   if (existing) {
     return res.json({ success: true, message: 'Already favorited' });
   }
 
   const id = uuidv4();
-  db.prepare('INSERT INTO favorites (id, user_id, beer_name) VALUES (?, ?, ?)')
-    .run(id, req.userId, beer_name);
+  dbRun('INSERT INTO favorites (id, user_id, beer_name) VALUES (?, ?, ?)',
+    [id, req.userId, beer_name]);
   res.json({ id, beer_name });
 });
 
 app.delete('/api/favorites/:beer_name', authenticate, (req, res) => {
-  db.prepare('DELETE FROM favorites WHERE user_id = ? AND beer_name = ?')
-    .run(req.userId, req.params.beer_name);
+  dbRun('DELETE FROM favorites WHERE user_id = ? AND beer_name = ?',
+    [req.userId, req.params.beer_name]);
   res.json({ success: true });
 });
 
 // ============ GAME RECORDS ============
 
 app.get('/api/games', authenticate, (req, res) => {
-  const records = db.prepare(`
-    SELECT * FROM game_records WHERE user_id = ? ORDER BY played_at DESC LIMIT 50
-  `).all(req.userId);
+  const records = dbAll(
+    'SELECT * FROM game_records WHERE user_id = ? ORDER BY played_at DESC LIMIT 50',
+    [req.userId]
+  );
   res.json(records);
 });
 
@@ -177,8 +205,8 @@ app.post('/api/games', authenticate, (req, res) => {
   const { game_type, score } = req.body;
   const id = uuidv4();
   
-  db.prepare('INSERT INTO game_records (id, user_id, game_type, score) VALUES (?, ?, ?, ?)')
-    .run(id, req.userId, game_type, score);
+  dbRun('INSERT INTO game_records (id, user_id, game_type, score) VALUES (?, ?, ?, ?)',
+    [id, req.userId, game_type, score]);
   
   res.json({ id, game_type, score });
 });
@@ -186,12 +214,12 @@ app.post('/api/games', authenticate, (req, res) => {
 // ============ FRIENDSHIPS ============
 
 app.get('/api/friends', authenticate, (req, res) => {
-  const friends = db.prepare(`
+  const friends = dbAll(`
     SELECT u.id, u.username, u.email, f.created_at
     FROM friendships f
     JOIN users u ON (f.friend_id = u.id OR f.user_id = u.id) AND u.id != ?
     WHERE (f.user_id = ? OR f.friend_id = ?) AND f.status = 'accepted'
-  `).all(req.userId, req.userId, req.userId);
+  `, [req.userId, req.userId, req.userId]);
   res.json(friends);
 });
 
@@ -199,34 +227,40 @@ app.post('/api/friends/request', authenticate, (req, res) => {
   const { friend_id } = req.body;
   const id = uuidv4();
   
-  db.prepare(`
-    INSERT INTO friendships (id, user_id, friend_id, status) VALUES (?, ?, ?, 'pending')
-  `).run(id, req.userId, friend_id);
+  dbRun('INSERT INTO friendships (id, user_id, friend_id, status) VALUES (?, ?, ?, ?)',
+    [id, req.userId, friend_id, 'pending']);
   
   res.json({ id, status: 'pending' });
 });
 
 app.post('/api/friends/accept/:id', authenticate, (req, res) => {
-  db.prepare("UPDATE friendships SET status = 'accepted' WHERE id = ? AND friend_id = ?")
-    .run(req.params.id, req.userId);
+  dbRun("UPDATE friendships SET status = 'accepted' WHERE id = ? AND friend_id = ?",
+    [req.params.id, req.userId]);
   res.json({ success: true });
 });
 
 // Stats
 app.get('/api/stats', authenticate, (req, res) => {
-  const totalDrinks = db.prepare(
-    'SELECT COUNT(*) as count FROM drank_records WHERE user_id = ?'
-  ).get(req.userId).count;
+  const totalDrinks = dbGet(
+    'SELECT COUNT(*) as count FROM drank_records WHERE user_id = ?',
+    [req.userId]
+  );
   
-  const uniqueBeers = db.prepare(
-    'SELECT COUNT(DISTINCT beer_name) as count FROM drank_records WHERE user_id = ?'
-  ).get(req.userId).count;
+  const uniqueBeers = dbGet(
+    'SELECT COUNT(DISTINCT beer_name) as count FROM drank_records WHERE user_id = ?',
+    [req.userId]
+  );
 
-  const totalGames = db.prepare(
-    'SELECT COUNT(*) as count FROM game_records WHERE user_id = ?'
-  ).get(req.userId).count;
+  const totalGames = dbGet(
+    'SELECT COUNT(*) as count FROM game_records WHERE user_id = ?',
+    [req.userId]
+  );
 
-  res.json({ totalDrinks, uniqueBeers, totalGames });
+  res.json({
+    totalDrinks: totalDrinks?.count || 0,
+    uniqueBeers: uniqueBeers?.count || 0,
+    totalGames: totalGames?.count || 0
+  });
 });
 
 // Catch-all for SPA
@@ -239,6 +273,13 @@ app.get('*', (req, res) => {
   }
 });
 
-app.listen(PORT, () => {
-  console.log(`🍺 BeerLab running on port ${PORT}`);
-});
+// Start server
+async function start() {
+  await initDB();
+  console.log('Database initialized');
+  app.listen(PORT, () => {
+    console.log(`🍺 BeerLab running on http://localhost:${PORT}`);
+  });
+}
+
+start();
