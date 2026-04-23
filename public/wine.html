@@ -325,10 +325,6 @@
             <span class="icon">🍺</span>
             <span>喝啤酒</span>
         </button>
-        <button class="nav-btn primary">
-            <span class="icon">🍷</span>
-            <span>今天喝了吗</span>
-        </button>
     </div>
     
     <div class="hint">拖拽葡萄酒球，选择今日饮品</div>
@@ -356,7 +352,7 @@
     <script>
 var wines = [
     // 左上 - 清爽果香型
-    {name:'莫斯卡托',nameEn:'Moscato',abv:'5-8%',style:'意大利甜白，葡萄品种自带荔枝和蜜桃香气，简单易饮。',colorHex:'#F5DEB3',brand:'asti、d''asti',tags:['甜白','入门首选'],
+    {name:'莫斯卡托',nameEn:'Moscato',abv:'5-8%',style:'意大利甜白，葡萄品种自带荔枝和蜜桃香气，简单易饮。',colorHex:'#F5DEB3',brand:'asti、dasti',tags:['甜白','入门首选'],
      glossary:['Moscato：麝香葡萄，天然果香','DOCG：意大利最高品质等级'],
      x:0.2, y:0.2},
     {name:'普罗塞克',nameEn:'Prosecco',abv:'11-12%',style:'意大利起泡酒，比香槟更清新，果香主导，适合聚会。',colorHex:'#FFF8DC',brand:'La Marca、Martini',tags:['起泡','清爽'],
@@ -376,7 +372,7 @@ var wines = [
     {name:'维欧尼',nameEn:'Viognier',abv:'13-14%',style:'浓郁白葡萄酒，杏子、蜂蜜、香料香气，酒体饱满。',colorHex:'#FFE4B5',brand:'Condrieu、Chateau-Grillet',tags:['小众','芬芳'],
      glossary:['Condrieu：维欧尼最贵产区','晚熟：需要充足阳光'],
      x:0.75, y:0.35},
-    {name:'贵腐酒',nameEn:'Sauternes',abv:'13-14%',style:'被贵腐菌侵染的葡萄酿造，极甜极浓郁，蜂蜜、杏脯、焦糖。',colorHex:'#FFD700',brand:'Chateau d''Yquem',tags:['极甜','珍贵'],
+    {name:'贵腐酒',nameEn:'Sauternes',abv:'13-14%',style:'被贵腐菌侵染的葡萄酿造，极甜极浓郁，蜂蜜、杏脯、焦糖。',colorHex:'#FFD700',brand:'Chateau dYquem滴金',tags:['极甜','珍贵'],
      glossary:['贵腐菌：Botrytis，浓缩糖分','滴金酒庄：苏玳最贵'],
      x:0.8, y:0.3},
     {name:'冰酒',nameEn:'Icewine',abv:'8-10%',style:'冰冻葡萄压榨，极其甜润，蜂蜜和热带水果香。',colorHex:'#FFEFD5',brand:'Inniskillin、云岭',tags:['加拿大','极甜'],
@@ -427,6 +423,7 @@ var nodes = wines.map(function(wine, i) {
         radius: 28
     };
 });
+
 
 // 创建连接（相似节点）
 var links = [];
@@ -486,24 +483,24 @@ var node = svg.selectAll('.node')
             event.subject.fy = null; 
         }));
 
-// 外圈（虚线描边）
+// 外圈（发光描边）
 node.append('circle')
     .attr('class', 'outer')
     .attr('r', function(d) { return d.radius + 5; })
     .attr('fill', 'none')
     .attr('stroke', function(d) { return d.wine.colorHex; })
     .attr('stroke-width', 2)
-    .attr('stroke-dasharray', '3,3')
-    .attr('opacity', 0.4);
+    .attr('opacity', 0.6)
+    .style('filter', function(d) { return 'drop-shadow(0 0 8px ' + d.wine.colorHex + ')'; });
 
-// 主圈
+// 主圈（白色边框确保可见）
 node.append('circle')
     .attr('class', 'main')
     .attr('r', function(d) { return d.radius; })
     .attr('fill', function(d) { return d.wine.colorHex; })
     .attr('stroke', '#fff')
-    .attr('stroke-width', 2)
-    .style('filter', 'drop-shadow(0 2px 8px rgba(0,0,0,0.3))');
+    .attr('stroke-width', 3)
+    .style('filter', 'drop-shadow(0 0 15px rgba(255,255,255,0.3))');
 
 // 高光点
 node.append('circle')
@@ -519,7 +516,11 @@ node.append('text')
     .attr('dy', function(d) { return d.radius + 24; })
     .text(function(d) { return d.wine.name; });
 
+// simulation 完成后固定位置
+var tickCount = 0;
 simulation.on('tick', function() {
+    tickCount++;
+    
     link
         .attr('x1', function(d) { return d.source.x; })
         .attr('y1', function(d) { return d.source.y; })
@@ -533,6 +534,15 @@ simulation.on('tick', function() {
     });
     
     if (currentNode) moveTooltip(currentNode);
+    
+    // 运行 100 次 tick 后固定位置，停止 simulation
+    if (tickCount > 100) {
+        simulation.stop();
+        nodes.forEach(function(d) {
+            d.fx = d.x;
+            d.fy = d.y;
+        });
+    }
 });
 
 function showWine(d) {
