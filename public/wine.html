@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WINE LAB - 酒迹</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', sans-serif;
+            background: #0a0a0a;
+            color: #fff;
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+            padding-bottom: 80px;
+        }
+        
+        /* 大背景葡萄酒 */
+        .bg-wine {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 500px;
+            opacity: 0.03;
+            z-index: 0;
+            pointer-events: none;
+        }
+        
+        /* 装饰元素 */
+        .deco {
+            position: fixed;
+            z-index: 1;
+            opacity: 0.15;
+            pointer-events: none;
+            animation: float 8s ease-in-out infinite;
+        }
+        .deco-1 { top: 12%; left: 3%; font-size: 32px; animation-delay: 0s; }
+        .deco-2 { top: 18%; right: 4%; font-size: 28px; animation-delay: 1.5s; }
+        .deco-3 { top: 55%; left: 2%; font-size: 36px; animation-delay: 0.8s; }
+        .deco-4 { top: 75%; right: 3%; font-size: 30px; animation-delay: 2s; }
+        .deco-5 { top: 35%; right: 2%; font-size: 26px; animation-delay: 1s; }
+        .deco-6 { bottom: 22%; left: 4%; font-size: 34px; animation-delay: 0.3s; }
+        .deco-7 { top: 8%; left: 20%; font-size: 24px; animation-delay: 2.5s; }
+        .deco-8 { bottom: 18%; right: 20%; font-size: 28px; animation-delay: 1.2s; }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-8px) rotate(3deg); }
+        }
+        
+        /* 顶部标题 */
+        .header {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            z-index: 50;
+            background: rgba(10,10,10,0.9);
+            backdrop-filter: blur(20px);
+            padding: 24px 40px;
+            border-radius: 20px;
+            box-shadow: 0 0 60px rgba(7222F3,0.2), inset 0 0 1px rgba(7222F3,0.5);
+            border: 1px solid rgba(114,34,243,0.3);
+        }
+        .header h1 {
+            font-size: 52px;
+            font-weight: 900;
+            letter-spacing: -2px;
+            margin-bottom: 6px;
+        }
+        .header h1 span:first-child { color: #fff; }
+        .header h1 span:last-child { color: #7222F3; }
+        .header .subtitle { color: rgba(255,255,255,0.6); font-size: 11px; letter-spacing: 4px; margin-top: 4px; text-transform: uppercase; }
+        
+        /* 主内容区 */
+        .main-content {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+        }
+        
+        /* 力导向图 */
+        #network {
+            width: 100%;
+            height: 100%;
+        }
+        
+        /* 坐标轴 - 延伸到边缘 */
+        .axis-h {
+            position: fixed;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent 0%, #7222F3 10%, rgba(114,34,243,0.3) 50%, #7222F3 90%, transparent 100%);
+            transform: translateY(-50%);
+            z-index: 5;
+        }
+        .axis-v {
+            position: fixed;
+            left: 50%;
+            top: 0;
+            bottom: 0;
+            width: 1px;
+            background: linear-gradient(180deg, transparent 0%, #7222F3 10%, rgba(114,34,243,0.3) 50%, #7222F3 90%, transparent 100%);
+            transform: translateX(-50%);
+            z-index: 5;
+        }
+        
+        /* 轴标签 - 保持可见 */
+        .axis-label {
+            position: fixed;
+            font-size: 11px;
+            font-weight: 700;
+            color: #7222F3;
+            background: rgba(10,10,10,0.95);
+            backdrop-filter: blur(10px);
+            padding: 6px 14px;
+            border-radius: 20px;
+            z-index: 15;
+            border: 1px solid rgba(114,34,243,0.6);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.5);
+        }
+        .axis-label.x-left { 
+            top: calc(50% + env(safe-area-inset-top, 0px)); 
+            left: max(20px, env(safe-area-inset-left)); 
+            transform: translateY(-50%); 
+        }
+        .axis-label.x-right { 
+            top: calc(50% + env(safe-area-inset-top, 0px)); 
+            right: max(20px, env(safe-area-inset-right)); 
+            transform: translateY(-50%); 
+        }
+        .axis-label.y-top { 
+            top: max(20px, env(safe-area-inset-top)); 
+            left: 50%; 
+            transform: translateX(-50%); 
+        }
+        .axis-label.y-bottom { 
+            bottom: max(90px, calc(80px + env(safe-area-inset-bottom))); 
+            left: 50%; 
+            transform: translateX(-50%); 
+        }
+        
+        /* 节点样式 */
+        .node { cursor: grab; }
+        .node:active { cursor: grabbing; }
+        .node:hover circle.main { filter: brightness(1.2) drop-shadow(0 0 20px rgba(114,34,243,0.6)); }
+        .node-label {
+            font-size: 12px;
+            fill: #fff;
+            text-anchor: middle;
+            pointer-events: none;
+            font-weight: 700;
+            text-shadow: 0 1px 3px rgba(0,0,0,0.8);
+        }
+        .link { stroke: rgba(0,0,0,0.06); stroke-width: 1; }
+        
+        /* 跟随 tooltip */
+        .tip-container {
+            position: fixed;
+            z-index: 9999;
+            pointer-events: none;
+        }
+        .tip-container.show {
+            pointer-events: auto;
+        }
+        .tip-card {
+            background: rgba(15,15,15,0.98);
+            backdrop-filter: blur(20px);
+            border-radius: 16px;
+            padding: 16px;
+            border: 1px solid rgba(114,34,243,0.5);
+            box-shadow: 0 8px 40px rgba(0,0,0,0.6), 0 0 30px rgba(114,34,243,0.15);
+            color: #fff;
+            font-size: 12px;
+            width: 280px;
+            position: relative;
+        }
+        .tip-close {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.1);
+            border: none;
+            color: rgba(255,255,255,0.6);
+            font-size: 16px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            line-height: 1;
+        }
+        .tip-close:hover { background: rgba(255,255,255,0.2); }
+        .tip-header { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+        .tip-color { width: 40px; height: 40px; border-radius: 10px; flex-shrink: 0; box-shadow: 0 2px 10px rgba(0,0,0,0.5); }
+        .tip-info { flex: 1; }
+        .tip-name { font-size: 18px; font-weight: 800; }
+        .tip-en { font-size: 11px; color: rgba(255,255,255,0.5); margin-top: 2px; }
+        .tip-abv { background: rgba(114,34,243,0.2); padding: 5px 12px; border-radius: 10px; font-size: 12px; font-weight: 700; color: #7222F3; white-space: nowrap; }
+        .tip-style { background: rgba(114,34,243,0.05); padding: 10px; border-radius: 8px; margin-bottom: 12px; border-left: 3px solid #7222F3; font-size: 12px; color: rgba(255,255,255,0.85); line-height: 1.6; }
+        .tip-glossary-title { font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: rgba(114,34,243,0.8); margin-bottom: 6px; font-weight: 700; }
+        .tip-glossary { margin-bottom: 10px; }
+        .tip-glossary-item { display: flex; align-items: flex-start; gap: 6px; margin-bottom: 6px; font-size: 11px; line-height: 1.4; }
+        .tip-glossary-item::before { content: '•'; color: #7222F3; font-weight: bold; flex-shrink: 0; }
+        .tip-glossary-term { color: #ffd700; font-weight: 600; }
+        .tip-glossary-desc { color: rgba(255,255,255,0.7); }
+        .tip-brand { font-size: 11px; color: rgba(255,255,255,0.5); margin-bottom: 8px; }
+        .tip-tags { display: flex; flex-wrap: wrap; gap: 4px; }
+        .tip-tag { background: rgba(114,34,243,0.15); padding: 3px 8px; border-radius: 8px; font-size: 10px; color: #7222F3; }
+        
+        /* 底部导航 */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: auto;
+            min-height: 65px;
+            background: rgba(10,10,10,0.98);
+            backdrop-filter: blur(20px);
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
+            gap: 6px;
+            padding: 8px 8px;
+            padding-bottom: max(8px, env(safe-area-inset-bottom, 8px));
+            border-top: 1px solid rgba(114,34,243,0.2);
+            z-index: 100;
+            box-sizing: border-box;
+        }
+        .nav-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            padding: 8px 12px;
+            border-radius: 18px;
+            font-size: 11px;
+            font-weight: 700;
+            cursor: pointer;
+            border: none;
+            transition: all 0.3s;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+        .nav-btn.primary {
+            background: linear-gradient(135deg, #7222F3, #A855F7);
+            color: #fff;
+            box-shadow: 0 4px 30px rgba(114,34,243,0.4);
+        }
+        .nav-btn.secondary {
+            background: rgba(255,255,255,0.05);
+            color: #fff;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+            border: 1px solid rgba(114,34,243,0.3);
+        }
+        .nav-btn.secondary:hover {
+            background: rgba(114,34,243,0.1);
+            border-color: #7222F3;
+        }
+        .nav-btn .icon { font-size: 18px; }
+        .nav-btn:hover { transform: scale(1.05); }
+        
+        .hint {
+            position: fixed;
+            bottom: 185px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: rgba(255,255,255,0.6);
+            font-size: 12px;
+            text-shadow: 0 1px 3px rgba(0,0,0,0.5);
+        }
+    </style>
+</head>
+<body>
+    <!-- 大背景葡萄酒杯 -->
+    <div class="bg-wine">🍷</div>
+    
+    <!-- 装饰元素 -->
+    <div class="deco deco-1">🍷</div>
+    <div class="deco deco-2">🍾</div>
+    <div class="deco deco-3">🍇</div>
+    <div class="deco deco-4">🍷</div>
+    <div class="deco deco-5">🍾</div>
+    <div class="deco deco-6">🍇</div>
+    <div class="deco deco-7">🍷</div>
+    <div class="deco deco-8">🍾</div>
+    
+    <!-- 中心标题 -->
+    <div class="header">
+        <h1><span>酒</span><span>迹</span></h1>
+        <div class="subtitle">WINE LAB &nbsp;🍷&nbsp;葡萄酒图鉴</div>
+    </div>
+    
+    <!-- 坐标轴 -->
+    <div class="axis-h"></div>
+    <div class="axis-v"></div>
+    
+    <!-- 轴标签 -->
+    <div class="axis-label x-left">干型/轻酒体</div>
+    <div class="axis-label x-right">甜型/重酒体</div>
+    <div class="axis-label y-top">果香/花香</div>
+    <div class="axis-label y-bottom">橡木/矿物</div>
+    
+    <!-- 主内容 -->
+    <div class="main-content">
+        <svg id="network"></svg>
+    </div>
+    
+    <!-- 底部导航 -->
+    <div class="bottom-nav">
+        <button class="nav-btn secondary" onclick="window.location.href='index.html'">
+            <span class="icon">🍺</span>
+            <span>喝啤酒</span>
+        </button>
+        <button class="nav-btn primary">
+            <span class="icon">🍷</span>
+            <span>今天喝了吗</span>
+        </button>
+    </div>
+    
+    <div class="hint">拖拽葡萄酒球，选择今日饮品</div>
+    
+    <!-- 跟随节点的 tooltip (置顶) -->
+    <div id="tipContainer" class="tip-container" style="display:none;">
+        <div class="tip-card">
+            <button class="tip-close" onclick="closeCard()">×</button>
+            <div class="tip-header">
+                <div class="tip-color" id="tipColor"></div>
+                <div class="tip-info">
+                    <div class="tip-name" id="tipName"></div>
+                    <div class="tip-en" id="tipEn"></div>
+                </div>
+                <div class="tip-abv" id="tipAbv"></div>
+            </div>
+            <div class="tip-style" id="tipStyle"></div>
+            <div class="tip-glossary-title">术语解读</div>
+            <div class="tip-glossary" id="tipGlossary"></div>
+            <div class="tip-brand" id="tipBrand"></div>
+            <div class="tip-tags" id="tipTags"></div>
+        </div>
+    </div>
+    
+    <script>
+var wines = [
+    // 左上 - 清爽果香型
+    {name:'莫斯卡托',nameEn:'Moscato',abv:'5-8%',style:'意大利甜白，葡萄品种自带荔枝和蜜桃香气，简单易饮。',colorHex:'#F5DEB3',brand:'asti、d''asti',tags:['甜白','入门首选'],
+     glossary:['Moscato：麝香葡萄，天然果香','DOCG：意大利最高品质等级'],
+     x:0.2, y:0.2},
+    {name:'普罗塞克',nameEn:'Prosecco',abv:'11-12%',style:'意大利起泡酒，比香槟更清新，果香主导，适合聚会。',colorHex:'#FFF8DC',brand:'La Marca、Martini',tags:['起泡','清爽'],
+     glossary:['Charmat法：罐内二次发酵，成本更低','与香槟区别：品种和工艺不同'],
+     x:0.25, y:0.3},
+    {name:'长相思',nameEn:'Sauvignon Blanc',abv:'12-14%',style:'新西兰国宝，青草、百香果、猫尿香味，酸度清爽。',colorHex:'#E0FFFF',brand:'Cloudy Bay、长相思',tags:['白葡萄酒','酸度高'],
+     glossary:['猫尿味：长相思典型特征，来自甲氧基吡嗪','长相思："长相守"谐音梗'],
+     x:0.15, y:0.35},
+    {name:'雷司令',nameEn:'Riesling',abv:'8-12%',style:'德国贵族，从干到甜都有，汽油+蜂蜜+花香是典型香气。',colorHex:'#FFFFE0',brand:'Dr.Loosen、Weingut',tags:['干型可选','陈年潜力'],
+     glossary:['汽油味：雷司令典型，来自TDN化合物','从干到甜：同一葡萄不同风格'],
+     x:0.3, y:0.25},
+    
+    // 右上 - 浓郁复杂型
+    {name:'霞多丽',nameEn:'Chardonnay',abv:'13-14%',style:'白葡萄酒之王，从清爽到浓郁都有，过桶版有黄油爆米花香。',colorHex:'#FAFAD2',brand:'Louis Jadot、Cloudy Bay',tags:['过桶','饱满'],
+     glossary:['过桶：橡木桶陈年带来香草、黄油','不过桶：保持清爽果香'],
+     x:0.7, y:0.2},
+    {name:'维欧尼',nameEn:'Viognier',abv:'13-14%',style:'浓郁白葡萄酒，杏子、蜂蜜、香料香气，酒体饱满。',colorHex:'#FFE4B5',brand:'Condrieu、Chateau-Grillet',tags:['小众','芬芳'],
+     glossary:['Condrieu：维欧尼最贵产区','晚熟：需要充足阳光'],
+     x:0.75, y:0.35},
+    {name:'贵腐酒',nameEn:'Sauternes',abv:'13-14%',style:'被贵腐菌侵染的葡萄酿造，极甜极浓郁，蜂蜜、杏脯、焦糖。',colorHex:'#FFD700',brand:'Chateau d''Yquem',tags:['极甜','珍贵'],
+     glossary:['贵腐菌：Botrytis，浓缩糖分','滴金酒庄：苏玳最贵'],
+     x:0.8, y:0.3},
+    {name:'冰酒',nameEn:'Icewine',abv:'8-10%',style:'冰冻葡萄压榨，极其甜润，蜂蜜和热带水果香。',colorHex:'#FFEFD5',brand:'Inniskillin、云岭',tags:['加拿大','极甜'],
+     glossary:['零下8度采收：葡萄水分结冰，只榨出浓缩糖液','VQA：加拿大葡萄酒品质认证'],
+     x:0.85, y:0.4},
+    
+    // 左下 - 清爽矿物型
+    {name:'黑皮诺',nameEn:'Pinot Noir',abv:'12-13%',style:'红葡萄酒中最小清新，草莓、樱桃香气，单宁轻柔。',colorHex:'#8B0000',brand:'DRC、勃艮第',tags:['红酒入门','轻柔'],
+     glossary:['Pinot：松果状葡萄串','DRC：罗曼尼康帝，勃艮第酒王'],
+     x:0.2, y:0.7},
+    {name:'佳美',nameEn:'Gamay',abv:'12-13%',style:'博若莱特产，薄荷、樱桃、香蕉香气，简单果香。',colorHex:'#DC143C',brand:'Beaujolais、Morgon',tags:['博若莱','新酒'],
+     glossary:['博若莱新酒：当年酿当年喝','二氧化碳浸渍：保持果香'],
+     x:0.25, y:0.8},
+    {name:'品丽珠',nameEn:'Cabernet Franc',abv:'12-13%',style:'波尔多右岸主力，紫罗兰、覆盆子香气，比赤霞珠轻柔。',colorHex:'#7222F3',brand:'Cheval Blanc、右岸名庄',tags:['波尔多','优雅'],
+     glossary:['右岸：波尔多品丽珠为主的产区','波尔多混酿：赤霞珠+品丽珠+美乐'],
+     x:0.3, y:0.75},
+    
+    // 右下 - 浓郁重桶型
+    {name:'赤霞珠',nameEn:'Cabernet Sauvignon',abv:'13-14%',style:'全球种植面积最广，黑醋栗、雪松、烟草，重单宁。',colorHex:'#722F37',brand:'波尔多、纳帕、奔富',tags:['重单宁','过桶'],
+     glossary:['单宁：来自葡萄皮，让口腔发涩','赤霞珠：中国最早引进的品种'],
+     x:0.8, y:0.65},
+    {name:'西拉',nameEn:'Shiraz/Syrah',abv:'14-15%',style:'澳洲叫设拉子，法国叫西拉，黑胡椒、烤肉、香料香气。',colorHex:'#4B0082',brand:'Penfolds Grange、隆河',tags:['浓郁','辛辣'],
+     glossary:['GSM混酿：歌海娜+西拉+慕合怀特','设拉子：奔富 Grange 用的品种'],
+     x:0.85, y:0.75},
+    {name:'美乐',nameEn:'Merlot',abv:'13-14%',style:'波尔多的温柔派，柔软易饮，李子、巧克力香气。',colorHex:'#8B4513',brand:'Chateau Pétrus、右岸',tags:['柔和','果香'],
+     glossary:['Pétrus：柏翠酒庄，美乐之王','右岸代表：波美侯产区'],
+     x:0.75, y:0.8},
+    {name:'马尔贝克',nameEn:'Malbec',abv:'13-14%',style:'阿根廷代表作，黑莓、烟草、紫罗兰，重酒体。',colorHex:'#581845',brand:'Catena Zapata、Achaval Ferrer',tags:['阿根廷','浓郁'],
+     glossary:['马尔贝克：法国叫Côt','门多萨：阿根廷马尔贝克最佳产区'],
+     x:0.82, y:0.85}
+];
+
+var currentWine = null;
+var currentNode = null;
+var svg = d3.select('#network');
+var tipContainer = document.getElementById('tipContainer');
+var width = window.innerWidth;
+var height = window.innerHeight;
+svg.attr('width', width).attr('height', height);
+
+// 创建节点
+var nodes = wines.map(function(wine, i) {
+    return {
+        id: i,
+        wine: wine,
+        x: wine.x * width + (Math.random() - 0.5) * 80,
+        y: wine.y * height + (Math.random() - 0.5) * 80,
+        radius: 28
+    };
+});
+
+// 创建连接（相似节点）
+var links = [];
+for (var i = 0; i < wines.length; i++) {
+    for (var j = i + 1; j < wines.length; j++) {
+        var dx = wines[i].x - wines[j].x;
+        var dy = wines[i].y - wines[j].y;
+        var dist = Math.sqrt(dx*dx + dy*dy);
+        if (dist < 0.25) {
+            links.push({source: i, target: j, strength: 1 - dist * 4});
+        }
+    }
+}
+
+// 力模拟
+var simulation = d3.forceSimulation(nodes)
+    .force('link', d3.forceLink(links).distance(60).strength(function(d) { return d.strength * 0.1; }))
+    .force('charge', d3.forceManyBody().strength(-100))
+    .force('collision', d3.forceCollide().radius(function(d) { return d.radius + 10; }))
+    .force('x', d3.forceX(function(d) { return d.wine.x * width; }).strength(0.25))
+    .force('y', d3.forceY(function(d) { return d.wine.y * height; }).strength(0.25));
+
+// 画连接线
+var link = svg.selectAll('.link')
+    .data(links)
+    .enter().append('line')
+    .attr('class', 'link')
+    .attr('stroke-opacity', function(d) { return d.strength * 0.3; });
+
+// 画节点
+var node = svg.selectAll('.node')
+    .data(nodes)
+    .enter().append('g')
+    .attr('class', 'node')
+    .on('click', function(event, d) { 
+        event.stopPropagation();
+        if (currentNode === d) {
+            closeCard();
+        } else {
+            showWine(d); 
+        }
+    })
+    .call(d3.drag()
+        .on('start', function(event) { 
+            if (!event.active) simulation.alphaTarget(0.3).restart(); 
+            event.subject.fx = event.subject.x; 
+            event.subject.fy = event.subject.y; 
+        })
+        .on('drag', function(event, d) { 
+            event.subject.fx = event.x; 
+            event.subject.fy = event.y;
+            if (currentNode === d) moveTooltip(d);
+        })
+        .on('end', function(event) { 
+            if (!event.active) simulation.alphaTarget(0); 
+            event.subject.fx = null; 
+            event.subject.fy = null; 
+        }));
+
+// 外圈（虚线描边）
+node.append('circle')
+    .attr('class', 'outer')
+    .attr('r', function(d) { return d.radius + 5; })
+    .attr('fill', 'none')
+    .attr('stroke', function(d) { return d.wine.colorHex; })
+    .attr('stroke-width', 2)
+    .attr('stroke-dasharray', '3,3')
+    .attr('opacity', 0.4);
+
+// 主圈
+node.append('circle')
+    .attr('class', 'main')
+    .attr('r', function(d) { return d.radius; })
+    .attr('fill', function(d) { return d.wine.colorHex; })
+    .attr('stroke', '#fff')
+    .attr('stroke-width', 2)
+    .style('filter', 'drop-shadow(0 2px 8px rgba(0,0,0,0.3))');
+
+// 高光点
+node.append('circle')
+    .attr('class', 'shine')
+    .attr('cx', function(d) { return -d.radius * 0.25; })
+    .attr('cy', function(d) { return -d.radius * 0.25; })
+    .attr('r', function(d) { return d.radius * 0.2; })
+    .attr('fill', 'rgba(255,255,255,0.35)');
+
+// 标签
+node.append('text')
+    .attr('class', 'node-label')
+    .attr('dy', function(d) { return d.radius + 24; })
+    .text(function(d) { return d.wine.name; });
+
+simulation.on('tick', function() {
+    link
+        .attr('x1', function(d) { return d.source.x; })
+        .attr('y1', function(d) { return d.source.y; })
+        .attr('x2', function(d) { return d.target.x; })
+        .attr('y2', function(d) { return d.target.y; });
+    
+    node.attr('transform', function(d) {
+        d.x = Math.max(d.radius + 60, Math.min(width - d.radius - 60, d.x));
+        d.y = Math.max(d.radius + 100, Math.min(height - d.radius - 100, d.y));
+        return 'translate(' + d.x + ',' + d.y + ')';
+    });
+    
+    if (currentNode) moveTooltip(currentNode);
+});
+
+function showWine(d) {
+    currentWine = d.wine;
+    currentNode = d;
+    
+    var wine = d.wine;
+    document.getElementById('tipColor').style.background = wine.colorHex;
+    document.getElementById('tipName').textContent = wine.name;
+    document.getElementById('tipEn').textContent = wine.nameEn;
+    document.getElementById('tipAbv').textContent = wine.abv;
+    document.getElementById('tipStyle').textContent = wine.style;
+    document.getElementById('tipBrand').textContent = '代表酒款: ' + wine.brand;
+    
+    if (wine.glossary && wine.glossary.length > 0) {
+        var glossaryHtml = wine.glossary.map(function(item) {
+            var parts = item.split('：');
+            if (parts.length === 2) {
+                return '<div class="tip-glossary-item"><span class="tip-glossary-term">' + parts[0] + '</span><span class="tip-glossary-desc">：' + parts[1] + '</span></div>';
+            }
+            return '<div class="tip-glossary-item">' + item + '</div>';
+        }).join('');
+        document.getElementById('tipGlossary').innerHTML = glossaryHtml;
+    }
+    
+    var tagsHtml = wine.tags.map(function(tag) {
+        return '<span class="tip-tag">' + tag + '</span>';
+    }).join('');
+    document.getElementById('tipTags').innerHTML = tagsHtml;
+    
+    tipContainer.style.display = 'block';
+    tipContainer.classList.add('show');
+    moveTooltip(d);
+}
+
+function moveTooltip(d) {
+    var tipWidth = 280;
+    var tipHeight = 320;
+    var screenW = window.innerWidth;
+    var screenH = window.innerHeight;
+    var safeTop = window.innerHeight > 800 ? 20 : 60;
+    
+    var x = d.x + 50;
+    var y = d.y - 80;
+    
+    if (x + tipWidth > screenW - 20) {
+        x = d.x - tipWidth - 20;
+    }
+    if (x < 20) x = 20;
+    if (y < safeTop) y = safeTop;
+    if (y + tipHeight > screenH - 100) {
+        y = screenH - 100 - tipHeight;
+    }
+    
+    tipContainer.style.left = x + 'px';
+    tipContainer.style.top = y + 'px';
+}
+
+function closeCard() {
+    tipContainer.style.display = 'none';
+    tipContainer.classList.remove('show');
+    currentWine = null;
+    currentNode = null;
+}
+
+// 点击空白关闭
+document.addEventListener('click', function(e) {
+    if (!e.target.closest('.node') && !e.target.closest('.tip-container')) {
+        closeCard();
+    }
+});
+
+// 窗口调整
+window.addEventListener('resize', function() {
+    width = window.innerWidth;
+    height = window.innerHeight;
+    svg.attr('width', width).attr('height', height);
+});
+    </script>
+</body>
+</html>
