@@ -480,6 +480,16 @@
             box-shadow: 0 4px 30px rgba(255,215,0,0.2);
             border: 1px solid rgba(255,215,0,0.3);
         }
+        .nav-btn.wine-btn {
+            background: linear-gradient(135deg, #722f37, #9b2335);
+            color: #fff;
+            box-shadow: 0 4px 30px rgba(114,47,55,0.4);
+            border: 1px solid rgba(155,35,53,0.5);
+        }
+        .nav-btn.wine-btn:hover {
+            background: linear-gradient(135deg, #8b3a42, #b02e3f);
+            box-shadow: 0 4px 30px rgba(114,47,55,0.6);
+        }
         .nav-btn.accent:hover {
             background: linear-gradient(135deg, #16213e, #1a1a2e);
             border-color: #ffd700;
@@ -563,6 +573,10 @@
         <button class="nav-btn accent" onclick="openGames()">
             <span class="icon">🎮</span>
             <span>PLAY GAME</span>
+        </button>
+        <button class="nav-btn wine-btn" onclick="window.location.href='wine.html'">
+            <span class="icon">🍷</span>
+            <span>今天喝葡萄酒</span>
         </button>
         <button class="nav-btn primary" onclick="openDrankModal()">
             <span class="icon">🍻</span>
