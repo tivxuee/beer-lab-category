@@ -796,17 +796,44 @@
             transform: scale(1.05);
         }
         
+        /* 左上角浮动GAME按钮 */
+        .floating-game-btn {
+            position: fixed;
+            top: max(12px, env(safe-area-inset-top));
+            left: 12px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 14px;
+            border-radius: 20px;
+            background: linear-gradient(135deg, #1a1a2e, #16213e);
+            border: 1px solid rgba(255,215,0,0.3);
+            font-size: 16px;
+            font-weight: 600;
+            color: #ffd700;
+            cursor: pointer;
+            box-shadow: 0 4px 20px rgba(255,215,0,0.2);
+            z-index: 90;
+            transition: all 0.3s;
+        }
+        .floating-game-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 25px rgba(255,215,0,0.4);
+        }
+        
         /* 右上角浮动地图按钮 */
         .floating-map-btn {
             position: fixed;
             top: max(12px, env(safe-area-inset-top));
             right: 12px;
-            width: 44px;
-            height: 44px;
-            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 14px;
+            border-radius: 20px;
             background: linear-gradient(135deg, #2d5a27, #3d7a37);
             border: none;
-            font-size: 22px;
+            font-size: 16px;
             cursor: pointer;
             box-shadow: 0 4px 20px rgba(45,90,39,0.5);
             z-index: 90;
@@ -892,10 +919,6 @@
             <span class="icon">🎭</span>
             <span>今天喝什么</span>
         </button>
-        <button class="nav-btn accent" onclick="openGames()">
-            <span class="icon">🎮</span>
-            <span>PLAY GAME</span>
-        </button>
         <button class="nav-btn primary" onclick="openDrankModalWithAuth()">
             <span class="icon">🍻</span>
             <span>今天喝了吗</span>
@@ -906,9 +929,14 @@
         </button>
     </div>
     
+    <!-- 左上角PLAY GAME入口 -->
+    <button class="floating-game-btn" onclick="openGames()">
+        🎮<span>GAME</span>
+    </button>
+    
     <!-- 右上角城市地图入口 -->
     <button class="floating-map-btn" onclick="window.location.href='city-map.html'">
-        🗺️
+        🗺️<span>CITY MAP</span>
     </button>
     
     <div class="hint">拖拽啤酒球，选择今日饮品</div>
