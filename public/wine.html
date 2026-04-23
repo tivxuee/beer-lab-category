@@ -270,6 +270,8 @@
             border-radius: 18px;
             font-size: 11px;
             font-weight: 700;
+            font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', sans-serif;
+            letter-spacing: 0.5px;
             cursor: pointer;
             border: none;
             transition: all 0.3s;
@@ -291,8 +293,72 @@
             background: rgba(114,34,243,0.1);
             border-color: #7222F3;
         }
+        .nav-btn.accent {
+            background: linear-gradient(135deg, #722f37, #9b2335);
+            color: #fff;
+            box-shadow: 0 4px 30px rgba(114,47,55,0.4);
+            border: 1px solid rgba(155,35,53,0.5);
+        }
+        .nav-btn.accent:hover {
+            background: linear-gradient(135deg, #8b3a42, #b02e3f);
+            box-shadow: 0 4px 30px rgba(114,47,55,0.6);
+        }
         .nav-btn .icon { font-size: 18px; }
         .nav-btn:hover { transform: scale(1.05); }
+        
+        /* 左上角浮动GAME按钮 */
+        .floating-game-btn {
+            position: fixed;
+            top: max(12px, env(safe-area-inset-top));
+            left: 12px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 14px;
+            border-radius: 20px;
+            background: linear-gradient(135deg, #1a1a2e, #16213e);
+            border: 1px solid rgba(255,215,0,0.3);
+            font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            font-size: 13px;
+            font-weight: 600;
+            letter-spacing: 1px;
+            color: #ffd700;
+            cursor: pointer;
+            box-shadow: 0 4px 20px rgba(255,215,0,0.2);
+            z-index: 90;
+            transition: all 0.3s;
+        }
+        .floating-game-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 25px rgba(255,215,0,0.4);
+        }
+        
+        /* 右上角浮动地图按钮 */
+        .floating-map-btn {
+            position: fixed;
+            top: max(12px, env(safe-area-inset-top));
+            right: 12px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 14px;
+            border-radius: 20px;
+            background: linear-gradient(135deg, #2d5a27, #3d7a37);
+            border: none;
+            font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            font-size: 13px;
+            font-weight: 600;
+            letter-spacing: 1px;
+            color: #fff;
+            cursor: pointer;
+            box-shadow: 0 4px 20px rgba(45,90,39,0.5);
+            z-index: 90;
+            transition: all 0.3s;
+        }
+        .floating-map-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 25px rgba(45,90,39,0.7);
+        }
         
         .hint {
             position: fixed;
@@ -303,6 +369,49 @@
             font-size: 12px;
             text-shadow: 0 1px 3px rgba(0,0,0,0.5);
         }
+        
+        /* 打卡弹窗 */
+        .drank-modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.8);
+            z-index: 999;
+            align-items: center;
+            justify-content: center;
+        }
+        .drank-modal.show { display: flex; }
+        .drank-content {
+            background: rgba(15,15,15,0.98);
+            border: 1px solid rgba(114,34,243,0.4);
+            border-radius: 20px;
+            padding: 24px;
+            width: 300px;
+            text-align: center;
+            box-shadow: 0 0 40px rgba(114,34,243,0.3);
+        }
+        .drank-content h3 {
+            font-size: 18px;
+            color: #fff;
+            margin-bottom: 16px;
+        }
+        .drank-content p {
+            color: rgba(255,255,255,0.7);
+            font-size: 13px;
+            line-height: 1.6;
+            margin-bottom: 16px;
+        }
+        .drank-close {
+            background: linear-gradient(135deg, #7222F3, #A855F7);
+            border: none;
+            color: #fff;
+            padding: 10px 24px;
+            border-radius: 20px;
+            font-size: 14px;
+            cursor: pointer;
+            font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', sans-serif;
+        }
+        .drank-close:hover { opacity: 0.9; }
     </style>
 </head>
 <body>
@@ -346,7 +455,25 @@
             <span class="icon">🍺</span>
             <span>喝啤酒</span>
         </button>
+        <button class="nav-btn primary" onclick="openDrankWineModal()">
+            <span class="icon">🍻</span>
+            <span>今天喝了吗</span>
+        </button>
+        <button class="nav-btn accent">
+            <span class="icon">🍷</span>
+            <span>喝葡萄酒</span>
+        </button>
     </div>
+    
+    <!-- 左上角PLAY GAME入口 -->
+    <button class="floating-game-btn" onclick="window.location.href='index.html'">
+        🎮<span>GAME</span>
+    </button>
+    
+    <!-- 右上角城市地图入口 -->
+    <button class="floating-map-btn" onclick="window.location.href='city-map.html'">
+        🗺️<span>MAP</span>
+    </button>
     
     <div class="hint">拖拽葡萄酒球，选择今日饮品</div>
     
@@ -630,6 +757,22 @@ window.addEventListener('resize', function() {
     height = window.innerHeight;
     svg.attr('width', width).attr('height', height);
 });
+
+function openDrankWineModal() {
+    document.getElementById('drankWineModal').classList.add('show');
+}
+function closeDrankWineModal() {
+    document.getElementById('drankWineModal').classList.remove('show');
+}
     </script>
+    
+    <!-- 打卡弹窗 -->
+    <div id="drankWineModal" class="drank-modal">
+        <div class="drank-content">
+            <h3>🍷 今日葡萄酒打卡</h3>
+            <p>选择今天喝的葡萄酒品种开始记录</p>
+            <button class="drank-close" onclick="closeDrankWineModal()">知道了</button>
+        </div>
+    </div>
 </body>
 </html>
