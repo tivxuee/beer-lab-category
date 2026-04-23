@@ -387,6 +387,8 @@
             border-radius: 20px;
             padding: 24px;
             width: 300px;
+            max-height: 80vh;
+            overflow-y: auto;
             text-align: center;
             box-shadow: 0 0 40px rgba(114,34,243,0.3);
         }
@@ -412,6 +414,51 @@
             font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', sans-serif;
         }
         .drank-close:hover { opacity: 0.9; }
+        .drank-choices { display: flex; flex-direction: column; gap: 12px; margin-bottom: 16px; }
+        .drank-choice {
+            background: rgba(114,34,243,0.1);
+            border: 1px solid rgba(114,34,243,0.3);
+            border-radius: 14px;
+            padding: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: left;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .drank-choice:hover { background: rgba(114,34,243,0.2); border-color: rgba(114,34,243,0.5); }
+        .drank-choice-icon { font-size: 28px; }
+        .drank-choice-text { font-size: 15px; color: #fff; font-weight: 600; }
+        .drank-choice-sub { font-size: 12px; color: rgba(255,255,255,0.5); margin-top: 2px; }
+        .drank-list { max-height: 300px; overflow-y: auto; margin-bottom: 12px; }
+        .drank-wine-item {
+            display: flex; align-items: center; justify-content: space-between;
+            background: rgba(114,34,243,0.1);
+            border: 1px solid rgba(114,34,243,0.2);
+            border-radius: 10px;
+            padding: 10px 14px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .drank-wine-item:hover { background: rgba(114,34,243,0.2); }
+        .drank-wine-name { font-size: 14px; color: #fff; font-weight: 600; }
+        .drank-wine-en { font-size: 11px; color: rgba(255,255,255,0.4); margin-top: 1px; }
+        .drank-custom { display: none; }
+        .drank-custom input {
+            width: 100%; background: rgba(255,255,255,0.08); border: 1px solid rgba(114,34,243,0.3);
+            border-radius: 10px; padding: 10px 14px; color: #fff; font-size: 14px;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', sans-serif;
+        }
+        .drank-custom input::placeholder { color: rgba(255,255,255,0.4); }
+        .drank-custom input:focus { outline: none; border-color: #7222F3; }
+        .drank-input-btns { display: flex; gap: 8px; margin-top: 10px; }
+        .drank-confirm-btn { background: #7222F3; color: #fff; flex: 1; padding: 10px; border-radius: 10px; border: none; font-size: 14px; cursor: pointer; font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', sans-serif; }
+        .drank-cancel-btn { background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.6); flex: 1; padding: 10px; border-radius: 10px; border: none; font-size: 14px; cursor: pointer; font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', sans-serif; }
+        .drank-back-btn { display: block; width: 100%; background: none; border: 1px solid rgba(255,255,255,0.2); color: rgba(255,255,255,0.6); padding: 10px; border-radius: 10px; font-size: 13px; cursor: pointer; margin-top: 10px; font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', sans-serif; }
+        .drank-empty { text-align: center; color: rgba(255,255,255,0.4); padding: 30px; font-size: 13px; }
     </style>
 </head>
 <body>
@@ -773,18 +820,110 @@ window.addEventListener('resize', function() {
 
 function openDrankWineModal() {
     document.getElementById('drankWineModal').classList.add('show');
+    backToWineChoice();
 }
 function closeDrankWineModal() {
     document.getElementById('drankWineModal').classList.remove('show');
 }
+function backToWineChoice() {
+    document.getElementById('drankWineChoiceView').style.display = 'block';
+    document.getElementById('drankWineListView').style.display = 'none';
+    document.getElementById('drankWineCustomView').style.display = 'none';
+}
+function showWineList() {
+    var list = document.getElementById('drankWineList');
+    list.innerHTML = wines.map(function(w) {
+        return '<div class="drank-wine-item" onclick="selectWine(\'' + w.name + '\')">' +
+            '<div><div class="drank-wine-name">' + w.name + '</div><div class="drank-wine-en">' + w.nameEn + '</div></div>' +
+            '<div style="width:10px;height:10px;border-radius:50%;background:' + w.colorHex + ';box-shadow:0 0 6px ' + w.colorHex + ';"></div></div>';
+    }).join('');
+    document.getElementById('drankWineChoiceView').style.display = 'none';
+    document.getElementById('drankWineListView').style.display = 'block';
+    document.getElementById('drankWineCustomView').style.display = 'none';
+}
+function showWineCustomInput() {
+    document.getElementById('drankWineChoiceView').style.display = 'none';
+    document.getElementById('drankWineListView').style.display = 'none';
+    document.getElementById('drankWineCustomView').style.display = 'block';
+    document.getElementById('customWineInput').value = '';
+    document.getElementById('customWineInput').focus();
+}
+function selectWine(name) {
+    saveWine(name);
+}
+function confirmCustomWine() {
+    var name = document.getElementById('customWineInput').value.trim();
+    if (!name) return;
+    saveWine(name);
+}
+function saveWine(name) {
+    var today = new Date().toLocaleDateString('zh-CN');
+    var drank = localStorage.getItem('drankWine') || '[]';
+    var names = JSON.parse(drank);
+    names.unshift({name: name, date: today});
+    if (names.length > 100) names = names.slice(0, 100);
+    localStorage.setItem('drankWine', JSON.stringify(names));
+    closeDrankWineModal();
+    showWineStats();
+}
+function noWineToday() {
+    closeDrankWineModal();
+    showWineStats();
+}
+function showWineStats() {
+    var drank = localStorage.getItem('drankWine') || '[]';
+    var records = JSON.parse(drank);
+    var unique = {};
+    records.forEach(function(r) { unique[r.name] = true; });
+    var total = records.length;
+    var types = Object.keys(unique).length;
+    alert('🍷 葡萄酒打卡\n\n今日已打卡 ' + total + ' 款\n累计 ' + types + ' 种葡萄酒');
+}
     </script>
-    
+
     <!-- 打卡弹窗 -->
     <div id="drankWineModal" class="drank-modal">
         <div class="drank-content">
             <h3>🍷 今日葡萄酒打卡</h3>
-            <p>选择今天喝的葡萄酒品种开始记录</p>
-            <button class="drank-close" onclick="closeDrankWineModal()">知道了</button>
+            <div id="drankWineChoiceView">
+                <p>选择今天喝的葡萄酒品种开始记录</p>
+                <div class="drank-choices">
+                    <div class="drank-choice" onclick="showWineList()">
+                        <div class="drank-choice-icon">🍷</div>
+                        <div>
+                            <div class="drank-choice-text">选酒款</div>
+                            <div class="drank-choice-sub">从列表中挑选</div>
+                        </div>
+                    </div>
+                    <div class="drank-choice" onclick="showWineCustomInput()">
+                        <div class="drank-choice-icon">✏️</div>
+                        <div>
+                            <div class="drank-choice-text">自创</div>
+                            <div class="drank-choice-sub">输入不在列表中的酒款</div>
+                        </div>
+                    </div>
+                    <div class="drank-choice" onclick="noWineToday()">
+                        <div class="drank-choice-icon">🚫</div>
+                        <div>
+                            <div class="drank-choice-text">今天没喝</div>
+                            <div class="drank-choice-sub">跳过本次</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div id="drankWineListView" style="display:none;">
+                <div class="drank-list" id="drankWineList"></div>
+                <button class="drank-back-btn" onclick="backToWineChoice()">← 返回</button>
+            </div>
+            <div id="drankWineCustomView" style="display:none;">
+                <div class="drank-custom">
+                    <input id="customWineInput" type="text" placeholder="输入葡萄酒名称..." />
+                </div>
+                <div class="drank-input-btns">
+                    <button class="drank-confirm-btn" onclick="confirmCustomWine()">打卡</button>
+                    <button class="drank-cancel-btn" onclick="backToWineChoice()">取消</button>
+                </div>
+            </div>
         </div>
     </div>
 </body>
