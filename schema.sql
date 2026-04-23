@@ -1,0 +1,130 @@
+-- BeerLab 数据库 Schema
+-- Railway PostgreSQL
+
+-- 1. 用户表
+CREATE TABLE IF NOT EXISTS users (
+    id UUID PRIMARY KEY,
+    email VARCHAR(255) UNIQUE NOT NULL,
+    username VARCHAR(100) UNIQUE NOT NULL,
+    password_hash VARCHAR(255) NOT NULL,
+    avatar_url TEXT,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- 2. 啤酒库表
+CREATE TABLE IF NOT EXISTS beers (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    name_en VARCHAR(255),
+    tag VARCHAR(100),
+    style VARCHAR(100),
+    abv DECIMAL(3,1),
+    ibu INTEGER,
+    description TEXT,
+    image_url TEXT,
+    color VARCHAR(50),
+    flavor_tags TEXT[],
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- 3. 用户收藏的啤酒
+CREATE TABLE IF NOT EXISTS user_beers (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+    beer_id UUID REFERENCES beers(id) ON DELETE CASCADE,
+    rating INTEGER CHECK (rating >= 1 AND rating <= 5),
+    notes TEXT,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    UNIQUE(user_id, beer_id)
+);
+
+-- 4. 饮酒记录
+CREATE TABLE IF NOT EXISTS drank_records (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+    beer_id UUID REFERENCES beers(id) ON DELETE SET NULL,
+    mood VARCHAR(100),
+    location VARCHAR(255),
+    companions TEXT[],
+    rating INTEGER CHECK (rating >= 1 AND rating <= 5),
+    notes TEXT,
+    drank_at TIMESTAMPTZ DEFAULT NOW(),
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- 5. 好友关系
+CREATE TABLE IF NOT EXISTS friendships (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+    friend_id UUID REFERENCES users(id) ON DELETE CASCADE,
+    status VARCHAR(20) DEFAULT 'pending' CHECK (status IN ('pending', 'accepted', 'blocked')),
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW(),
+    UNIQUE(user_id, friend_id)
+);
+
+-- 6. 游戏记录
+CREATE TABLE IF NOT EXISTS game_records (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+    game_type VARCHAR(50) NOT NULL,
+    score INTEGER,
+    result JSONB,
+    played_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- 7. 邀请码
+CREATE TABLE IF NOT EXISTS invite_codes (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    code VARCHAR(20) UNIQUE NOT NULL,
+    creator_id UUID REFERENCES users(id) ON DELETE CASCADE,
+    used_by UUID REFERENCES users(id) ON DELETE SET NULL,
+    used_at TIMESTAMPTZ,
+    expires_at TIMESTAMPTZ,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- 索引
+CREATE INDEX IF NOT EXISTS idx_user_beers_user ON user_beers(user_id);
+CREATE INDEX IF NOT EXISTS idx_drank_records_user ON drank_records(user_id);
+CREATE INDEX IF NOT EXISTS idx_drank_records_drank_at ON drank_records(drank_at);
+CREATE INDEX IF NOT EXISTS idx_friendships_user ON friendships(user_id);
+CREATE INDEX IF NOT EXISTS idx_game_records_user ON game_records(user_id);
+
+-- 初始啤酒数据
+INSERT INTO beers (name, name_en, tag, style, abv, ibu, description, color, flavor_tags) VALUES
+-- 精酿啤酒
+('小屁孩', 'Kids Bystander', 'IPA', '美式IPA', 5.2, 45, '清新果香，适合入门', '金色', ARRAY['柑橘', '松木', '果香']),
+('嘻游记', 'Xi You Ji', 'IPA', '新英格兰IPA', 6.5, 40, '国产骄傲，果香浓郁', '浑浊金黄', ARRAY['芒果', '百香果', '柑橘']),
+('牛壁', 'Cow Wall', 'IPA', '双料IPA', 8.2, 65, '高度数爱好者福音', '琥珀金', ARRAY['葡萄柚', '松脂', '焦糖']),
+('小试刀', 'Small Knife', 'IPA', '社交IPA', 4.5, 35, '易饮清快，社交首选', '淡金色', ARRAY['柠檬', '青草', '花香']),
+('哈密瓜', 'Hami Melon', '果味', '水果啤酒', 4.0, 10, '哈密瓜清甜，回味无穷', '浅黄', ARRAY['哈密瓜', '甜瓜', '清爽']),
+('龙井', 'Longjing', '茶啤', '茶类啤酒', 4.5, 15, '茶香四溢，中国风味', '浅琥珀', ARRAY['龙井', '绿茶', '清香']),
+('IPA', 'IPA', 'IPA', '经典IPA', 6.0, 55, '经典美式IPA，苦中带香', '金色', ARRAY['柑橘', '松木', '树脂']),
+('牛油果', 'Avocado', '果味', '水果啤酒', 4.2, 12, '牛油果奶昔风味，丝滑', '浅绿', ARRAY['牛油果', '奶油', '清爽']),
+('草莓', 'Strawberry', '果味', '水果啤酒', 3.8, 8, '草莓甜蜜炸弹', '粉红', ARRAY['草莓', '甜蜜', '果香']),
+('蓝莓', 'Blueberry', '果味', '水果啤酒', 4.0, 10, '蓝莓深度酸甜', '深紫红', ARRAY['蓝莓', '浆果', '酸甜']),
+-- 经典啤酒
+('健力士', 'Guinness', 'Stout', '爱尔兰世涛', 4.2, 45, '经典黑啤，丝滑如巧克力', '深黑', ARRAY['咖啡', '巧克力', '焦糖']),
+('福佳白', 'Hoegaarden', 'Witbier', '比利时白啤', 4.9, 15, '橙皮芫荽，清新开胃', '淡黄浑浊', ARRAY['橙皮', '芫荽', '香料']),
+('1664', '1664 Kronenbourg', 'Witbier', '法式白啤', 4.5, 12, '优雅法风，蓝瓶限定', '淡金', ARRAY['柑橘', '花香', '清爽']),
+('科罗娜', 'Corona', 'Lager', '墨西哥拉格', 4.5, 18, '青柠配科罗娜，度假风', '浅金', ARRAY['青柠', '麦芽', '清爽']),
+('白啤', 'White Beer', 'Witbier', '德式小麦', 5.0, 12, '经典白啤，丁香香蕉', '浑浊白', ARRAY['丁香', '香蕉', '酵母']),
+('百威', 'Budweiser', 'Lager', '美式拉格', 5.0, 12, '美国经典，清爽干净', '金色', ARRAY['麦芽', '谷物', '清爽']),
+('青岛', 'Tsingtao', 'Lager', '国产拉格', 4.3, 12, '青岛啤酒，国民经典', '金黄', ARRAY['麦芽', '酒花', '清爽']),
+('雪花', 'Snow', 'Lager', '国产拉格', 3.6, 10, '勇闯天涯，清爽到底', '浅金', ARRAY['麦芽', '清爽', '解渴']),
+('哈尔滨', 'Harbin', 'Lager', '国产拉格', 4.0, 12, '冰爽一夏，东北骄傲', '金色', ARRAY['麦芽', '清爽', '微苦']),
+('燕京', 'Yanjing', 'Lager', '国产拉格', 4.2, 10, '老北京味道，醇厚', '琥珀金', ARRAY['麦芽', '醇厚', '传统']),
+-- 精酿进阶
+('酿酒狗朋克', 'BrewDog Punk IPA', 'IPA', '英式IPA', 5.6, 45, '朋克精神，果香爆炸', '金色', ARRAY['西柚', '荔枝', '松木']),
+('创始者早餐', 'Founders Breakfast Stout', 'Stout', '早餐世涛', 8.3, 60, '咖啡巧克力，早餐必备', '深黑', ARRAY['咖啡', '燕麦', '巧克力']),
+('鹅岛 IPA', 'Goose Island IPA', 'IPA', '美式IPA', 5.9, 55, '芝加哥精酿，柑橘松木', '琥珀金', ARRAY['柑橘', '松脂', '焦糖']),
+('罗格坏东西', 'Rogue Dead Guy', 'IPA', '德式麦芽IPA', 6.5, 40, '坏家伙专属，麦芽甜', '深金', ARRAY['麦芽', '蜂蜜', '果香']),
+('打嗝贝壳', 'Belching Beaver', 'Stout', '牛奶世涛', 5.5, 30, '奶油般顺滑，甜而不腻', '深棕', ARRAY['奶油', '咖啡', '巧克力']),
+('内华达山脉', 'Sierra Nevada Pale Ale', 'Pale Ale', '美式淡色艾尔', 5.6, 38, '经典传承，酒花之王', '淡琥珀', ARRAY['柑橘', '松木', '花香']),
+('岬角', 'Corona', 'IPA', '西海岸IPA', 7.0, 75, '极致苦度，干净收尾', '浅金', ARRAY['树脂', '柑橘', '苦']),
+('大本德', 'Big Bend', 'Lager', '德式皮尔森', 4.4, 25, '德州精酿，干净清爽', '淡金', ARRAY['麦芽', '啤酒花', '清脆']),
+('北岸', 'North Coast', 'Stout', '俄罗斯帝国世涛', 9.0, 53, '重磅炸弹，浓郁深沉', '漆黑', ARRAY['深烘麦芽', '咖啡', '干果']),
+('林德曼', 'Lindemans', 'Lambic', '兰比克', 3.5, 12, '比利时酸啤，自然发酵', '玫瑰红', ARRAY['覆盆子', '酸', '果香'])
+ON CONFLICT DO NOTHING;

@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>夯啤 - 风味对比</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', sans-serif;
+            background: #fafafa;
+            color: #333;
+            min-height: 100vh;
+        }
+        .header {
+            text-align: center;
+            padding: 40px 20px 20px;
+        }
+        .header h1 {
+            font-size: 36px;
+            font-weight: 900;
+            background: linear-gradient(135deg, #FF6B6B, #FFA500);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 8px;
+        }
+        .header p {
+            color: #999;
+            font-size: 14px;
+        }
+        
+        .compare-container {
+            display: flex;
+            gap: 40px;
+            padding: 20px 40px 40px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        .model-section {
+            flex: 1;
+            background: #fff;
+            border-radius: 24px;
+            padding: 24px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        }
+        
+        .model-title {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .model-title h2 {
+            font-size: 20px;
+            font-weight: 800;
+            color: #333;
+            margin-bottom: 4px;
+        }
+        .model-title p {
+            font-size: 12px;
+            color: #999;
+        }
+        
+        .quadrant-chart {
+            width: 100%;
+            aspect-ratio: 1;
+            background: linear-gradient(135deg, #fef9f3 0%, #fff5f5 50%, #f0f4ff 100%);
+            border-radius: 16px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .quadrant {
+            position: absolute;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 12px;
+            font-size: 12px;
+            font-weight: 700;
+            text-align: center;
+        }
+        .quadrant .quad-name { margin-bottom: 4px; }
+        .quadrant .quad-beers { 
+            font-size: 10px; 
+            color: #888; 
+            font-weight: 400;
+            line-height: 1.6;
+        }
+        
+        .quad-tl { top: 0; left: 0; width: 50%; height: 50%; background: rgba(244,208,63,0.15); border-right: 1px dashed rgba(0,0,0,0.1); border-bottom: 1px dashed rgba(0,0,0,0.1); }
+        .quad-tr { top: 0; right: 0; width: 50%; height: 50%; background: rgba(231,76,60,0.12); border-left: 1px dashed rgba(0,0,0,0.1); border-bottom: 1px dashed rgba(0,0,0,0.1); }
+        .quad-bl { bottom: 0; left: 0; width: 50%; height: 50%; background: rgba(230,126,34,0.12); border-right: 1px dashed rgba(0,0,0,0.1); border-top: 1px dashed rgba(0,0,0,0.1); }
+        .quad-br { bottom: 0; right: 0; width: 50%; height: 50%; background: rgba(44,24,16,0.15); border-left: 1px dashed rgba(0,0,0,0.1); border-top: 1px dashed rgba(0,0,0,0.1); }
+        
+        .axis-h { position: absolute; left: 0; right: 0; top: 50%; transform: translateY(-50%); height: 1px; background: rgba(0,0,0,0.1); }
+        .axis-v { position: absolute; top: 0; bottom: 0; left: 50%; transform: translateX(-50%); width: 1px; background: rgba(0,0,0,0.1); }
+        
+        .axis-label {
+            position: absolute;
+            font-size: 10px;
+            color: #bbb;
+        }
+        .axis-label.top { top: 8px; left: 50%; transform: translateX(-50%); }
+        .axis-label.bottom { bottom: 8px; left: 50%; transform: translateX(-50%); }
+        .axis-label.left { left: 8px; top: 50%; transform: translateY(-50%) rotate(-90deg); }
+        .axis-label.right { right: 8px; top: 50%; transform: translateY(-50%) rotate(90deg); }
+        
+        .quadrant .dot {
+            width: 12px; height: 12px;
+            border-radius: 50%;
+            margin: 2px;
+            display: inline-block;
+        }
+        
+        /* 8维雷达图 */
+        .radar-chart {
+            width: 100%;
+            aspect-ratio: 1;
+            position: relative;
+        }
+        
+        .beer-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            gap: 12px;
+            margin-top: 24px;
+        }
+        
+        .beer-card {
+            background: #fff;
+            border-radius: 16px;
+            padding: 16px;
+            text-align: center;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .beer-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+        
+        .beer-card .beer-dot {
+            width: 32px; height: 32px;
+            border-radius: 50%;
+            margin: 0 auto 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        }
+        .beer-card .beer-name {
+            font-size: 14px;
+            font-weight: 700;
+            margin-bottom: 2px;
+        }
+        .beer-card .beer-abv {
+            font-size: 11px;
+            color: #999;
+        }
+        .beer-card .beer-tags {
+            margin-top: 8px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            justify-content: center;
+        }
+        .beer-card .beer-tag {
+            font-size: 9px;
+            padding: 2px 6px;
+            background: rgba(255,107,107,0.1);
+            color: #FF6B6B;
+            border-radius: 8px;
+        }
+        
+        /* 选中态 */
+        .beer-card.selected {
+            border: 2px solid #FF6B6B;
+            background: linear-gradient(135deg, rgba(255,107,107,0.05), rgba(255,165,0,0.05));
+        }
+        
+        /* Detail panel */
+        .detail-panel {
+            max-width: 1400px;
+            margin: 0 auto 40px;
+            padding: 0 40px;
+            display: none;
+        }
+        .detail-panel.show { display: block; }
+        
+        .detail-card {
+            background: #fff;
+            border-radius: 24px;
+            padding: 32px;
+            display: flex;
+            gap: 32px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        }
+        
+        .detail-left { text-align: center; }
+        .detail-color {
+            width: 80px; height: 80px;
+            border-radius: 20px;
+            margin: 0 auto 16px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+        }
+        .detail-left h3 { font-size: 24px; font-weight: 800; }
+        .detail-left p { color: #888; font-size: 14px; margin-top: 4px; }
+        .detail-abv {
+            display: inline-block;
+            background: rgba(255,107,107,0.15);
+            color: #FF6B6B;
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-weight: 700;
+            font-size: 14px;
+            margin-top: 12px;
+        }
+        
+        .detail-right { flex: 1; }
+        .detail-desc {
+            background: rgba(0,0,0,0.03);
+            padding: 16px;
+            border-radius: 12px;
+            margin-bottom: 16px;
+            border-left: 4px solid #FF6B6B;
+            line-height: 1.8;
+            color: #555;
+        }
+        
+        .detail-brand {
+            background: rgba(0,0,0,0.03);
+            padding: 12px 16px;
+            border-radius: 12px;
+            margin-bottom: 16px;
+            font-size: 14px;
+        }
+        .detail-brand span { color: #888; }
+        .detail-brand strong { color: #FF6B6B; margin-left: 8px; }
+        
+        .detail-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .detail-tag {
+            background: rgba(255,107,107,0.1);
+            color: #FF6B6B;
+            padding: 8px 16px;
+            border-radius: 12px;
+            font-size: 13px;
+        }
+        
+        /* Radar detail */
+        .radar-detail {
+            margin-top: 20px;
+            padding: 20px;
+            background: rgba(0,0,0,0.02);
+            border-radius: 16px;
+        }
+        .radar-detail h4 {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 12px;
+        }
+        .radar-bars {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+        }
+        .radar-bar {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .radar-bar .bar-label {
+            font-size: 11px;
+            color: #888;
+            width: 36px;
+        }
+        .radar-bar .bar-track {
+            flex: 1;
+            height: 8px;
+            background: rgba(0,0,0,0.05);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        .radar-bar .bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #FF6B6B, #FFA500);
+            border-radius: 4px;
+            transition: width 0.5s;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>夯啤 Flavor Compare</h1>
+        <p>选一款啤酒，开启你的精酿之旅</p>
+    </div>
+    
+    <div class="compare-container">
+        <!-- 4维四象限 -->
+        <div class="model-section">
+            <div class="model-title">
+                <h2>四维选酒</h2>
+                <p>按颜色深度 + 口感浓郁度分类</p>
+            </div>
+            <div class="quadrant-chart" id="quadrantChart">
+                <div class="axis-h"></div>
+                <div class="axis-v"></div>
+                <span class="axis-label top">淡色</span>
+                <span class="axis-label bottom">深色</span>
+                <span class="axis-label left">清爽</span>
+                <span class="axis-label right">浓郁</span>
+                
+                <div class="quadrant quad-tl">
+                    <span class="quad-name" style="color:#c9a227">清爽淡色</span>
+                    <div class="quad-beers" id="quadTL"></div>
+                </div>
+                <div class="quadrant quad-tr">
+                    <span class="quad-name" style="color:#c0392b">浓郁苦香</span>
+                    <div class="quad-beers" id="quadTR"></div>
+                </div>
+                <div class="quadrant quad-bl">
+                    <span class="quad-name" style="color:#e67e22">清爽浓郁</span>
+                    <div class="quad-beers" id="quadBL"></div>
+                </div>
+                <div class="quadrant quad-br">
+                    <span class="quad-name" style="color:#8B4513">深色浓郁</span>
+                    <div class="quad-beers" id="quadBR"></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 8维雷达图 -->
+        <div class="model-section">
+            <div class="model-title">
+                <h2>八维选酒</h2>
+                <p>花香 / 果香 / 酒花 / 麦芽 / 甜度 / 干爽 / 低度 / 高度</p>
+            </div>
+            <svg id="radarChart" class="radar-chart"></svg>
+        </div>
+    </div>
+    
+    <!-- 啤酒列表 -->
+    <div style="max-width: 1400px; margin: 0 auto; padding: 0 40px 20px;">
+        <h3 style="text-align: center; margin-bottom: 20px; font-size: 18px; color: #666;">点击选择啤酒</h3>
+        <div class="beer-list" id="beerList"></div>
+    </div>
+    
+    <!-- 详情面板 -->
+    <div class="detail-panel" id="detailPanel">
+        <div class="detail-card">
+            <div class="detail-left">
+                <div class="detail-color" id="detailColor"></div>
+                <h3 id="detailName"></h3>
+                <p id="detailNameEn"></p>
+                <div class="detail-abv" id="detailAbv"></div>
+            </div>
+            <div class="detail-right">
+                <div class="detail-desc" id="detailDesc"></div>
+                <div class="detail-brand" id="detailBrand">
+                    <span>代表品牌:</span><strong></strong>
+                </div>
+                <div class="detail-tags" id="detailTags"></div>
+                
+                <div class="radar-detail">
+                    <h4>风味雷达</h4>
+                    <div class="radar-bars" id="radarBars"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+var beers = [
+    {name:'皮尔森',nameEn:'Pilsner',abv:'4-5%',quadrant:'lightFresh',style:'拉格酵母底层发酵，口感干净利落，是啤酒界的"白T恤"——简约但永远不过时。',colorHex:'#F4D03F',brand:'青岛、Asahi朝日、科罗娜',tags:['入门首选','清爽解渴','国民啤酒'],
+     aroma:3, fruit:2, hop:2, malt:5, sweet:2, dry:7, lowABV:8, highABV:2, popularity:9},
+    {name:'小麦白啤',nameEn:'Wheat Beer',abv:'4-6%',quadrant:'lightFresh',style:'小麦占40%以上，蛋白质丰富带来云雾般朦胧酒体，优雅易饮。',colorHex:'#F5E6CA',brand:'福佳白、蓝月',tags:['颜值担当','女生友好','口感绵密'],
+     aroma:6, fruit:5, hop:1, malt:4, sweet:5, dry:3, lowABV:7, highABV:2, popularity:8},
+    {name:'社交IPA',nameEn:'Session IPA',abv:'4-6%',quadrant:'freshBold',style:'保持IPA香气但降低酒精度，随时开喝不设限，是社交场合的润滑剂。',colorHex:'#E67E22',brand:'Lagunitas走开',tags:['社交神器','低醉不贵'],
+     aroma:4, fruit:7, hop:6, malt:2, sweet:4, dry:5, lowABV:7, highABV:2, popularity:7},
+    {name:'浑浊IPA',nameEn:'Hazy IPA',abv:'5.5-7.5%',quadrant:'freshBold',style:'大量干投酒花产生云雾外观，IPA界的"杨枝甘露"，顺滑到怀疑人生。',colorHex:'#E8B84A',brand:'Tree House树屋',tags:['浑浊王者','果香炸弹','网红之选'],
+     aroma:3, fruit:9, hop:7, malt:2, sweet:5, dry:3, lowABV:4, highABV:5, popularity:9},
+    {name:'NEIPA',nameEn:'NEIPA',abv:'6-7.5%',quadrant:'freshBold',style:'新英格兰风格代表，果香爆炸如热带风暴，丝滑如奶昔。',colorHex:'#9B59B6',brand:'炼金师、另一半',tags:['超级顺滑','Triple干投'],
+     aroma:2, fruit:10, hop:6, malt:2, sweet:6, dry:2, lowABV:3, highABV:6, popularity:8},
+    {name:'西海岸IPA',nameEn:'West Coast IPA',abv:'6-7.5%',quadrant:'bitterBold',style:'美式IPA的祖宗，松针树脂柚子皮从入口香到收口。',colorHex:'#E74C3C',brand:'鹅岛312、石屋',tags:['苦味经典','酒花狂魔'],
+     aroma:5, fruit:4, hop:10, malt:3, sweet:2, dry:6, lowABV:3, highABV:6, popularity:7},
+    {name:'三倍干投IPA',nameEn:'TDH IPA',abv:'7-9%',quadrant:'bitterBold',style:'三次酒花干投，香气层层叠加如海浪。',colorHex:'#C0392B',brand:'俄罗斯河',tags:['三倍诚意','香气爆炸'],
+     aroma:4, fruit:6, hop:10, malt:3, sweet:3, dry:5, lowABV:2, highABV:8, popularity:6},
+    {name:'双倍IPA',nameEn:'DIPA',abv:'8-10%',quadrant:'bitterBold',style:'双倍麦芽双倍酒花，酒精度逼近红酒。',colorHex:'#8B2500',brand:'小普林尼',tags:['酒精度高','极限挑战'],
+     aroma:4, fruit:5, hop:9, malt:6, sweet:4, dry:4, lowABV:1, highABV:10, popularity:6},
+    {name:'果泥酸啤',nameEn:'Smoothie Sour',abv:'4-8%',quadrant:'darkBold',style:'加入大量果泥增稠，酸甜平衡如奶昔。',colorHex:'#FF69B4',brand:'The Bruery',tags:['甜渣首选','派对之星'],
+     aroma:2, fruit:10, hop:1, malt:2, sweet:10, dry:1, lowABV:5, highABV:5, popularity:7},
+    {name:'赛松',nameEn:'Saison',abv:'5-8%',quadrant:'darkBold',style:'法语"季节"之意，农舍风格代表，胡椒草本气息。',colorHex:'#DAA520',brand:'大道',tags:['农舍风格','小众之选'],
+     aroma:8, fruit:5, hop:3, malt:4, sweet:2, dry:8, lowABV:5, highABV:5, popularity:5},
+    {name:'牛奶世涛',nameEn:'Milk Stout',abv:'4-7%',quadrant:'darkBold',style:'添加乳糖如牛奶般丝滑，巧克力咖啡基调。',colorHex:'#3D2314',brand:'左手',tags:['甜滑奶香','睡前之选'],
+     aroma:4, fruit:3, hop:1, malt:9, sweet:7, dry:2, lowABV:6, highABV:3, popularity:6},
+    {name:'世涛',nameEn:'Stout',abv:'5-8%',quadrant:'darkBold',style:'深烘焙麦芽带来咖啡巧克力焦糖三重奏。',colorHex:'#2C1810',brand:'健力士',tags:['咖啡搭档','巧克力香'],
+     aroma:5, fruit:2, hop:1, malt:10, sweet:3, dry:5, lowABV:4, highABV:5, popularity:7},
+    {name:'帝国世涛',nameEn:'Imperial Stout',abv:'8-12%',quadrant:'darkBold',style:'俄罗斯帝国出口北欧的御用酒，波本桶陈酿。',colorHex:'#1a0f0a',brand:'Founders CBS',tags:['帝王享受','可陈年'],
+     aroma:6, fruit:3, hop:1, malt:10, sweet:5, dry:3, lowABV:1, highABV:10, popularity:5}
+];
+
+// 四象限分组
+var quads = { lightFresh: [], freshBold: [], bitterBold: [], darkBold: [] };
+beers.forEach(function(b) {
+    quads[b.quadrant].push(b);
+});
+
+document.getElementById('quadTL').innerHTML = quads.lightFresh.map(function(b) {
+    return '<span class="dot" style="background:' + b.colorHex + '" title="' + b.name + '"></span> ' + b.name;
+}).join('<br>');
+document.getElementById('quadTR').innerHTML = quads.bitterBold.map(function(b) {
+    return '<span class="dot" style="background:' + b.colorHex + '" title="' + b.name + '"></span> ' + b.name;
+}).join('<br>');
+document.getElementById('quadBL').innerHTML = quads.freshBold.map(function(b) {
+    return '<span class="dot" style="background:' + b.colorHex + '" title="' + b.name + '"></span> ' + b.name;
+}).join('<br>');
+document.getElementById('quadBR').innerHTML = quads.darkBold.map(function(b) {
+    return '<span class="dot" style="background:' + b.colorHex + '" title="' + b.name + '"></span> ' + b.name;
+}).join('<br>');
+
+// 8维雷达图
+var radarSvg = d3.select('#radarChart');
+var radarRect = document.querySelector('.radar-chart').getBoundingClientRect();
+var rWidth = radarRect.width;
+var rHeight = rWidth;
+radarSvg.attr('viewBox', '0 0 ' + rWidth + ' ' + rHeight);
+
+var rcx = rWidth / 2;
+var rcy = rHeight / 2;
+var rRadius = rWidth * 0.38;
+
+var sectors = ['花香','果香','酒花','麦芽','甜度','干爽','低度','高度'];
+var attrKeys = ['aroma','fruit','hop','malt','sweet','dry','lowABV','highABV'];
+
+// Rings
+for (var r = 1; r <= 4; r++) {
+    radarSvg.append('circle')
+        .attr('cx', rcx).attr('cy', rcy)
+        .attr('r', rRadius * r / 4)
+        .attr('fill', 'none')
+        .attr('stroke', 'rgba(0,0,0,0.06)')
+        .attr('stroke-width', 1);
+}
+
+// Axes
+for (var i = 0; i < 8; i++) {
+    var angle = (i * 45 - 90) * Math.PI / 180;
+    var x2 = rcx + Math.cos(angle) * rRadius;
+    var y2 = rcy + Math.sin(angle) * rRadius;
+    
+    radarSvg.append('line')
+        .attr('x1', rcx).attr('y1', rcy)
+        .attr('x2', x2).attr('y2', y2)
+        .attr('stroke', 'rgba(0,0,0,0.06)')
+        .attr('stroke-width', 1);
+    
+    var labelR = rRadius * 1.18;
+    var lx = rcx + Math.cos(angle) * labelR;
+    var ly = rcy + Math.sin(angle) * labelR;
+    
+    radarSvg.append('text')
+        .attr('x', lx).attr('y', ly)
+        .attr('text-anchor', 'middle')
+        .attr('dominant-baseline', 'middle')
+        .attr('font-size', 12)
+        .attr('font-weight', 700)
+        .attr('fill', '#999')
+        .text(sectors[i]);
+}
+
+// Beer polygons
+beers.forEach(function(beer) {
+    var points = [];
+    for (var i = 0; i < 8; i++) {
+        var val = beer[attrKeys[i]] / 10;
+        var angle = (i * 45 - 90) * Math.PI / 180;
+        var r = rRadius * 0.2 + val * rRadius * 0.75;
+        var px = rcx + Math.cos(angle) * r;
+        var py = rcy + Math.sin(angle) * r;
+        points.push(px + ',' + py);
+    }
+    
+    radarSvg.append('polygon')
+        .attr('points', points.join(' '))
+        .attr('fill', beer.colorHex)
+        .attr('fill-opacity', 0.25)
+        .attr('stroke', beer.colorHex)
+        .attr('stroke-width', 2)
+        .attr('stroke-opacity', 0.6)
+        .style('cursor', 'pointer')
+        .on('click', function() { showDetail(beer); })
+        .on('mouseover', function() {
+            d3.select(this).attr('fill-opacity', 0.5).attr('stroke-width', 3);
+        })
+        .on('mouseout', function() {
+            d3.select(this).attr('fill-opacity', 0.25).attr('stroke-width', 2);
+        });
+});
+
+// 中心标题
+radarSvg.append('text')
+    .attr('x', rcx).attr('y', rcy - 8)
+    .attr('text-anchor', 'middle')
+    .attr('font-size', 18)
+    .attr('font-weight', 900)
+    .attr('fill', '#FF6B6B')
+    .text('夯啤');
+radarSvg.append('text')
+    .attr('x', rcx).attr('y', rcy + 12)
+    .attr('text-anchor', 'middle')
+    .attr('font-size', 10)
+    .attr('fill', '#ccc')
+    .text('8维风味');
+
+// 啤酒卡片列表
+var beerList = document.getElementById('beerList');
+beers.forEach(function(beer) {
+    var card = document.createElement('div');
+    card.className = 'beer-card';
+    card.innerHTML = 
+        '<div class="beer-dot" style="background:' + beer.colorHex + '"></div>' +
+        '<div class="beer-name">' + beer.name + '</div>' +
+        '<div class="beer-abv">' + beer.abv + '</div>' +
+        '<div class="beer-tags">' +
+        beer.tags.slice(0,2).map(function(t) { return '<span class="beer-tag">' + t + '</span>'; }).join('') +
+        '</div>';
+    card.onclick = function() {
+        document.querySelectorAll('.beer-card').forEach(function(c) { c.classList.remove('selected'); });
+        card.classList.add('selected');
+        showDetail(beer);
+    };
+    beerList.appendChild(card);
+});
+
+function showDetail(beer) {
+    var panel = document.getElementById('detailPanel');
+    panel.classList.add('show');
+    
+    document.getElementById('detailColor').style.background = beer.colorHex;
+    document.getElementById('detailName').textContent = beer.name;
+    document.getElementById('detailNameEn').textContent = beer.nameEn;
+    document.getElementById('detailAbv').textContent = beer.abv;
+    document.getElementById('detailDesc').textContent = beer.style;
+    document.querySelector('#detailBrand strong').textContent = beer.brand;
+    
+    document.getElementById('detailTags').innerHTML = beer.tags.map(function(t) {
+        return '<span class="detail-tag">' + t + '</span>';
+    }).join('');
+    
+    // Radar bars
+    var barsHtml = attrKeys.map(function(key, i) {
+        return '<div class="radar-bar">' +
+            '<span class="bar-label">' + sectors[i] + '</span>' +
+            '<div class="bar-track"><div class="bar-fill" style="width:' + (beer[key] * 10) + '%"></div></div>' +
+            '</div>';
+    }).join('');
+    document.getElementById('radarBars').innerHTML = barsHtml;
+    
+    // Scroll to detail
+    panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+    </script>
+</body>
+</html>
