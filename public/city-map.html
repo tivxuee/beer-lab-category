@@ -55,9 +55,8 @@
             top: 56px;
             left: 0;
             right: 0;
-            padding: 12px 16px;
-            background: rgba(26, 26, 46, 0.95);
-            backdrop-filter: blur(10px);
+            padding: 10px 12px;
+            background: rgba(26, 26, 46, 0.98);
             z-index: 90;
             border-bottom: 1px solid rgba(255,255,255,0.1);
             display: flex;
@@ -65,18 +64,17 @@
         }
         .mode-btn {
             flex: 1;
-            padding: 10px 16px;
-            border-radius: 12px;
-            border: 1px solid rgba(255,255,255,0.2);
+            padding: 8px 12px;
+            border-radius: 8px;
+            border: 1px solid rgba(255,255,255,0.15);
             background: rgba(255,255,255,0.05);
-            color: rgba(255,255,255,0.7);
-            font-size: 14px;
+            color: rgba(255,255,255,0.6);
+            font-size: 13px;
             cursor: pointer;
-            transition: all 0.3s;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 6px;
+            gap: 4px;
         }
         .mode-btn.active {
             background: linear-gradient(135deg, #ff1493, #ff69b4);
@@ -91,21 +89,16 @@
         .city-current {
             display: flex;
             align-items: center;
-            gap: 6px;
-            padding: 10px 14px;
-            background: rgba(255,255,255,0.1);
-            border: 1px solid rgba(255,255,255,0.2);
-            border-radius: 12px;
+            gap: 4px;
+            padding: 8px 12px;
+            background: rgba(255,255,255,0.08);
+            border: 1px solid rgba(255,255,255,0.15);
+            border-radius: 8px;
             color: #fff;
-            font-size: 14px;
+            font-size: 13px;
             cursor: pointer;
-            transition: all 0.3s;
-        }
-        .city-current:hover {
-            background: rgba(255,255,255,0.15);
         }
         .city-current .arrow {
-            transition: transform 0.3s;
             font-size: 10px;
         }
         .city-current.open .arrow {
@@ -118,12 +111,10 @@
             right: 0;
             margin-top: 4px;
             background: rgba(26, 26, 46, 0.98);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255,255,255,0.2);
-            border-radius: 12px;
+            border: 1px solid rgba(255,255,255,0.15);
+            border-radius: 8px;
             overflow: hidden;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.5);
-            max-height: 300px;
+            max-height: 280px;
             overflow-y: auto;
             z-index: 100;
         }
@@ -131,12 +122,10 @@
             display: block;
         }
         .city-dropdown-item {
-            padding: 10px 16px;
+            padding: 8px 14px;
             color: rgba(255,255,255,0.8);
-            font-size: 14px;
+            font-size: 13px;
             cursor: pointer;
-            transition: background 0.2s;
-            white-space: nowrap;
         }
         .city-dropdown-item:hover {
             background: rgba(255,255,255,0.1);
@@ -399,11 +388,11 @@
     
     <!-- 模式切换 + 城市选择 -->
     <div class="mode-switch">
-        <button class="mode-btn active" onclick="switchMode('city')">
+        <button class="mode-btn active" onclick="switchMode('city', this)">
             <span>🗺️</span>
             <span>城市精酿店</span>
         </button>
-        <button class="mode-btn" onclick="switchMode('world')">
+        <button class="mode-btn" onclick="switchMode('world', this)">
             <span>🌍</span>
             <span>世界产区</span>
         </button>
@@ -601,24 +590,25 @@
         ];
         
         // 模式切换
-        function switchMode(mode) {
-            document.querySelectorAll('.mode-btn').forEach(btn => btn.classList.remove('active'));
-            event.target.closest('.mode-btn').classList.add('active');
+        function switchMode(mode, btn) {
+            document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
             
             const mapContainer = document.getElementById('mapContainer');
+            const breweryList = document.getElementById('breweryList');
             const regionContainer = document.getElementById('regionContainer');
             const citySelector = document.getElementById('citySelector');
             
             if (mode === 'city') {
                 mapContainer.classList.add('active');
+                breweryList.classList.remove('active');
                 regionContainer.classList.remove('active');
-                citySelector.style.display = 'block';
-                document.querySelector('.main-content').style.paddingTop = '120px';
+                citySelector.style.display = 'flex';
             } else {
                 mapContainer.classList.remove('active');
+                breweryList.classList.remove('active');
                 regionContainer.classList.add('active');
                 citySelector.style.display = 'none';
-                document.querySelector('.main-content').style.paddingTop = '110px';
             }
         }
         

@@ -55,27 +55,25 @@
             top: 56px;
             left: 0;
             right: 0;
-            padding: 12px 16px;
-            background: rgba(26, 10, 32, 0.95);
-            backdrop-filter: blur(10px);
+            padding: 10px 12px;
+            background: rgba(26, 10, 32, 0.98);
             z-index: 90;
             border-bottom: 1px solid rgba(114, 34, 243, 0.2);
             display: flex;
             gap: 8px;
         }
         .mode-btn {
-            padding: 10px 16px;
-            border-radius: 12px;
-            border: 1px solid rgba(114, 34, 243, 0.3);
+            padding: 8px 12px;
+            border-radius: 8px;
+            border: 1px solid rgba(114, 34, 243, 0.25);
             background: rgba(114, 34, 243, 0.05);
-            color: rgba(255,255,255,0.7);
-            font-size: 14px;
+            color: rgba(255,255,255,0.6);
+            font-size: 13px;
             cursor: pointer;
-            transition: all 0.3s;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 6px;
+            gap: 4px;
             flex-shrink: 0;
         }
         .mode-btn.active {
@@ -94,21 +92,16 @@
         .city-current {
             display: flex;
             align-items: center;
-            gap: 6px;
-            padding: 10px 14px;
-            background: rgba(114, 34, 243, 0.1);
-            border: 1px solid rgba(114, 34, 243, 0.3);
-            border-radius: 12px;
+            gap: 4px;
+            padding: 8px 12px;
+            background: rgba(114, 34, 243, 0.08);
+            border: 1px solid rgba(114, 34, 243, 0.25);
+            border-radius: 8px;
             color: #fff;
-            font-size: 14px;
+            font-size: 13px;
             cursor: pointer;
-            transition: all 0.3s;
-        }
-        .city-current:hover {
-            background: rgba(114, 34, 243, 0.2);
         }
         .city-current .arrow {
-            transition: transform 0.3s;
             font-size: 10px;
         }
         .city-current.open .arrow {
@@ -121,12 +114,10 @@
             right: 0;
             margin-top: 4px;
             background: rgba(26, 10, 32, 0.98);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(114, 34, 243, 0.3);
-            border-radius: 12px;
+            border: 1px solid rgba(114, 34, 243, 0.25);
+            border-radius: 8px;
             overflow: hidden;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.5);
-            max-height: 300px;
+            max-height: 280px;
             overflow-y: auto;
             z-index: 100;
         }
@@ -134,15 +125,11 @@
             display: block;
         }
         .city-dropdown-item {
-            padding: 10px 16px;
+            padding: 8px 14px;
             color: rgba(255,255,255,0.8);
-            font-size: 14px;
+            font-size: 13px;
             cursor: pointer;
-            transition: background 0.2s;
             white-space: nowrap;
-        }
-        .city-dropdown-item:hover {
-            background: rgba(114, 34, 243, 0.1);
         }
         .city-dropdown-item.active {
             background: linear-gradient(135deg, #7222F3, #A855F7);
@@ -480,6 +467,13 @@
             </div>
             <div class="city-dropdown" id="cityDropdown">
                 <div class="city-dropdown-item active" onclick="selectCity('shanghai')">上海</div>
+                <div class="city-dropdown-item" onclick="selectCity('beijing')">北京</div>
+                <div class="city-dropdown-item" onclick="selectCity('shenzhen')">深圳</div>
+                <div class="city-dropdown-item" onclick="selectCity('guangzhou')">广州</div>
+                <div class="city-dropdown-item" onclick="selectCity('chengdu')">成都</div>
+                <div class="city-dropdown-item" onclick="selectCity('hangzhou')">杭州</div>
+                <div class="city-dropdown-item" onclick="selectCity('nanjing')">南京</div>
+                <div class="city-dropdown-item" onclick="selectCity('wuhan')">武汉</div>
             </div>
         </div>
     </div>
@@ -726,9 +720,9 @@
         
         // 选择城市
         function selectCity(city) {
-            const cityNames = { shanghai: '上海' };
+            const cityNames = { shanghai: '上海', beijing: '北京', shenzhen: '深圳', guangzhou: '广州', chengdu: '成都', hangzhou: '杭州', nanjing: '南京', wuhan: '武汉' };
             
-            document.getElementById('currentCityName').textContent = cityNames[city];
+            document.getElementById('currentCityName').textContent = cityNames[city] || city;
             
             document.querySelectorAll('.city-dropdown-item').forEach(item => {
                 item.classList.remove('active');
@@ -741,25 +735,19 @@
             const mapContainer = document.getElementById('mapContainer');
             const breweryList = document.getElementById('breweryList');
             
-            if (city === 'shanghai') {
-                mapContainer.style.display = 'none';
-                breweryList.classList.add('active');
-                renderBreweries(city);
-            } else {
-                mapContainer.style.display = 'none';
-                breweryList.classList.add('active');
-                renderBreweries(city);
-            }
+            mapContainer.style.display = 'none';
+            breweryList.classList.add('active');
+            renderBreweries(city);
         }
         
         // 渲染精酿店列表
         function renderBreweries(city) {
             const list = document.getElementById('breweryList');
             const breweries = cityBreweries[city] || [];
-            const cityNames = { shanghai: '上海' };
+            const cityNames = { shanghai: '上海', beijing: '北京', shenzhen: '深圳', guangzhou: '广州', chengdu: '成都', hangzhou: '杭州', nanjing: '南京', wuhan: '武汉' };
             
             list.innerHTML = `
-                <div class="brewery-city-name">🍷 ${cityNames[city]} 葡萄酒好店</div>
+                <div class="brewery-city-name">🍷 ${cityNames[city] || city} 葡萄酒好店</div>
                 ${breweries.map(b => `
                     <div class="brewery-item">
                         <div class="brewery-name">${b.name}</div>
