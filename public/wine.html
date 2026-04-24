@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>WINE LAB - 酒迹</title>
-    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script src="d3.min.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -518,7 +518,7 @@
     </button>
     
     <!-- 右上角城市地图入口 -->
-    <button class="floating-map-btn" onclick="window.location.href='city-map.html'">
+    <button class="floating-map-btn" onclick="window.location.href='wine-map.html'">
         🗺️<span>MAP</span>
     </button>
     
@@ -553,6 +553,9 @@ var wines = [
     {name:'普罗塞克',nameEn:'Prosecco',abv:'11-12%',style:'意大利起泡酒，比香槟更清新，果香主导，适合聚会。',colorHex:'#C8B87A',brand:'La Marca、Martini',tags:['起泡','清爽'],icon:'✦',
      glossary:['Charmat法：罐内二次发酵，成本更低','与香槟区别：品种和工艺不同'],
      x:0.25, y:0.3},
+    {name:'桃红',nameEn:'Rosé',abv:'11-13%',style:'普罗旺斯Style，粉嫩清爽，草莓、覆盆子香气，夏季首选。',colorHex:'#E8A0B0',brand:'Minuty、桃乐丝公牛血（亲民款）',tags:['清爽','夏季'],icon:'✦',
+     glossary:['压榨法：红白葡萄混酿，颜色最浅','浸渍法：黑葡萄短暂浸皮得到粉色','普罗旺斯：法国桃红核心产区'],
+     x:0.45, y:0.12},
     {name:'长相思',nameEn:'Sauvignon Blanc',abv:'12-14%',style:'新西兰国宝，青草、百香果、猫尿香味，酸度清爽。',colorHex:'#8BBF8B',brand:'Cloudy Bay、长相思',tags:['白葡萄酒','酸度高'],icon:'✦',
      glossary:['猫尿味：长相思典型特征，来自甲氧基吡嗪','长相思："长相守"谐音梗'],
      x:0.15, y:0.35},
@@ -563,16 +566,28 @@ var wines = [
     // 右上 - 浓郁复杂型
     {name:'霞多丽',nameEn:'Chardonnay',abv:'13-14%',style:'白葡萄酒之王，从清爽到浓郁都有，过桶版有黄油爆米花香。',colorHex:'#B8A878',brand:'Louis Jadot、Cloudy Bay',tags:['过桶','饱满'],icon:'✦',
      glossary:['过桶：橡木桶陈年带来香草、黄油','不过桶：保持清爽果香'],
-     x:0.7, y:0.2},
+     x:0.7, y:0.18},
     {name:'维欧尼',nameEn:'Viognier',abv:'13-14%',style:'浓郁白葡萄酒，杏子、蜂蜜、香料香气，酒体饱满。',colorHex:'#C09060',brand:'Condrieu、Chateau-Grillet',tags:['小众','芬芳'],icon:'✦',
      glossary:['Condrieu：维欧尼最贵产区','晚熟：需要充足阳光'],
-     x:0.75, y:0.35},
-    {name:'贵腐酒',nameEn:'Sauternes',abv:'13-14%',style:'被贵腐菌侵染的葡萄酿造，极甜极浓郁，蜂蜜、杏脯、焦糖。',colorHex:'#D4A820',brand:'Chateau dYquem滴金',tags:['极甜','珍贵'],
-     glossary:['贵腐菌：Botrytis，浓缩糖分','滴金酒庄：苏玳最贵'],
-     x:0.8, y:0.3},
-    {name:'冰酒',nameEn:'Icewine',abv:'8-10%',style:'冰冻葡萄压榨，极其甜润，蜂蜜和热带水果香。',colorHex:'#C8B878',brand:'Inniskillin、云岭',tags:['加拿大','极甜'],
-     glossary:['零下8度采收：葡萄水分结冰，只榨出浓缩糖液','VQA：加拿大葡萄酒品质认证'],
-     x:0.85, y:0.4},
+     x:0.82, y:0.22},
+    {name:'灰皮诺',nameEn:'Pinot Grigio',abv:'12-13%',style:'意大利风格白葡萄酒，清爽易饮，梨子、青苹果香气，简单直接。',colorHex:'#A8B090',brand:'Santa Margherita、意大利名庄',tags:['清爽','易饮'],icon:'✦',
+     glossary:['灰皮诺：Pinot Gris的意大利叫法','与Pinot Gris同宗，风格偏清爽'],
+     x:0.55, y:0.15},
+    {name:'琼瑶浆',nameEn:'Gewürztraminer',abv:'13-14%',style:'香气炸裂型白葡萄酒，荔枝、玫瑰、天竺葵，酒体饱满。',colorHex:'#D8A0C8',brand:'Trimbach、阿尔萨斯名庄',tags:['浓郁','芬芳'],icon:'✦',
+     glossary:['琼瑶浆：音译自Gewürztraminer','天竺葵：琼瑶浆典型香气之一','阿尔萨斯：最佳产区，风格饱满'],
+     x:0.65, y:0.32},
+    {name:'自然酒',nameEn:'Natural Wine',abv:'12-14%',style:'少人工干预的自然派葡萄酒，果香奔放，口感略带气泡，微浊是标志。',colorHex:'#C4A080',brand:'自然派小农酒庄',tags:['自然派','小众'],
+     glossary:['少干预：不澄清、不过滤、野生酵母','微浊：未过滤，酒体浑浊是正常','野发酵：野生酵母启动发酵'],
+     x:0.88, y:0.18},
+    {name:'橙酒',nameEn:'Orange Wine',abv:'12-14%',style:'白葡萄带皮浸渍发酵，萃取单宁和颜色，口感更有结构，类红酒风格。',colorHex:'#D4803A',brand:'格鲁吉亚传统派、意大利小众',tags:['自然派','浸渍发酵'],
+     glossary:['带皮浸渍：白葡萄不去皮发酵','萃取单宁：浸渍过程中萃入酚类','格鲁吉亚：橙酒发源地，Qvevri陶罐'],
+     x:0.92, y:0.35},
+    {name:'贵腐酒',nameEn:'Noble Rot Wine',abv:'13-14%',style:'被贵腐菌侵染的葡萄酿造，极甜极浓郁，蜂蜜、杏脯、焦糖。',colorHex:'#D4A820',brand:'滴金酒庄（法国苏玳）、托卡伊（匈牙利）',tags:['极甜','珍贵'],
+     glossary:['贵腐菌：Botrytis，浓缩糖分','滴金：苏玳最贵，匈牙利托卡伊分级：3-6P级别','匈牙利托卡伊：贵腐酒发源地，按甜度分级'],
+     x:0.75, y:0.45},
+    {name:'冰酒',nameEn:'Icewine',abv:'8-10%',style:'冰冻葡萄压榨，极其甜润，蜂蜜和热带水果香。',colorHex:'#E8B870',brand:'加拿大VQA、德国Eiswein',tags:['加拿大','极甜'],
+     glossary:['零下8度采收：葡萄水分结冰，只榨出浓缩糖液','VQA：加拿大葡萄酒品质认证','德国叫Eiswein，需自然冰冻'],
+     x:0.88, y:0.42},
     
     // 左下 - 清爽矿物型
     {name:'黑皮诺',nameEn:'Pinot Noir',abv:'12-13%',style:'红葡萄酒中最小清新，草莓、樱桃香气，单宁轻柔。',colorHex:'#8B0000',brand:'DRC、勃艮第',tags:['红酒入门','轻柔'],

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>城市精酿地图 - Beer Lab</title>
+    <title>探索精酿 - Beer Lab</title>
     <style>
         * {
             margin: 0;
@@ -29,6 +29,7 @@
             backdrop-filter: blur(10px);
             display: flex;
             align-items: center;
+            justify-content: center;
             padding: 0 16px;
             z-index: 100;
             border-bottom: 1px solid rgba(255,255,255,0.1);
@@ -48,73 +49,301 @@
             padding: 4px;
         }
         
-        /* 城市选择 */
-        .city-selector {
+        /* 模式切换 */
+        .mode-switch {
             position: fixed;
             top: 56px;
             left: 0;
             right: 0;
-            padding: 16px;
+            padding: 12px 16px;
             background: rgba(26, 26, 46, 0.95);
             backdrop-filter: blur(10px);
             z-index: 90;
             border-bottom: 1px solid rgba(255,255,255,0.1);
-        }
-        .city-list {
             display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
+            gap: 8px;
         }
-        .city-btn {
-            padding: 8px 16px;
-            border-radius: 20px;
+        .mode-btn {
+            flex: 1;
+            padding: 10px 16px;
+            border-radius: 12px;
             border: 1px solid rgba(255,255,255,0.2);
             background: rgba(255,255,255,0.05);
+            color: rgba(255,255,255,0.7);
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+        .mode-btn.active {
+            background: linear-gradient(135deg, #ff1493, #ff69b4);
+            border-color: #ff1493;
+            color: #fff;
+        }
+        
+        /* 城市选择器 */
+        .city-selector {
+            position: relative;
+        }
+        .city-current {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 10px 14px;
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 12px;
             color: #fff;
             font-size: 14px;
             cursor: pointer;
             transition: all 0.3s;
         }
-        .city-btn.active {
-            background: linear-gradient(135deg, #ff1493, #ff69b4);
-            border-color: #ff1493;
+        .city-current:hover {
+            background: rgba(255,255,255,0.15);
         }
-        .city-btn.disabled {
-            opacity: 0.4;
-            cursor: not-allowed;
+        .city-current .arrow {
+            transition: transform 0.3s;
+            font-size: 10px;
+        }
+        .city-current.open .arrow {
+            transform: rotate(180deg);
+        }
+        .city-dropdown {
+            display: none;
+            position: absolute;
+            top: 100%;
+            right: 0;
+            margin-top: 4px;
+            background: rgba(26, 26, 46, 0.98);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+            max-height: 300px;
+            overflow-y: auto;
+            z-index: 100;
+        }
+        .city-dropdown.open {
+            display: block;
+        }
+        .city-dropdown-item {
+            padding: 10px 16px;
+            color: rgba(255,255,255,0.8);
+            font-size: 14px;
+            cursor: pointer;
+            transition: background 0.2s;
+            white-space: nowrap;
+        }
+        .city-dropdown-item:hover {
+            background: rgba(255,255,255,0.1);
+        }
+        .city-dropdown-item.active {
+            background: linear-gradient(135deg, #ff1493, #ff69b4);
+            color: #fff;
+        }
+        
+        /* 精酿店列表 */
+        .brewery-list {
+            display: none;
+            padding: 12px 16px;
+            padding-bottom: 80px;
+        }
+        .brewery-list.active {
+            display: block;
+        }
+        .brewery-city-name {
+            font-size: 14px;
+            color: rgba(255,255,255,0.5);
+            margin-bottom: 12px;
+            padding-top: 8px;
+        }
+        .brewery-item {
+            background: rgba(255,255,255,0.05);
+            border-radius: 12px;
+            padding: 14px;
+            margin-bottom: 10px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .brewery-name {
+            font-size: 15px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+        .brewery-style {
+            font-size: 12px;
+            color: #ff1493;
+            margin-bottom: 4px;
+        }
+        .brewery-desc {
+            font-size: 13px;
+            color: rgba(255,255,255,0.6);
+        }
+        
+        /* 主内容区 */
+        .main-content {
+            padding-top: 120px;
         }
         
         /* 地图区域 */
         .map-container {
-            position: fixed;
-            top: 130px;
-            left: 10px;
-            right: 10px;
-            bottom: 20px;
+            display: none;
+            padding: 10px;
+        }
+        .map-container.active {
+            display: block;
+        }
+        .map-box {
             background: rgba(255,255,255,0.05);
             border-radius: 16px;
             overflow: hidden;
             display: flex;
             align-items: center;
             justify-content: center;
+            height: calc(100vh - 180px);
         }
-        .map-container img {
+        .map-box img {
             width: 100%;
             height: 100%;
             object-fit: contain;
         }
         
-        /* 底部提示 */
-        .map-hint {
-            position: fixed;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(0,0,0,0.7);
-            padding: 8px 16px;
-            border-radius: 20px;
+        /* 世界产区 */
+        .region-container {
+            display: none;
+            padding: 12px 16px;
+            padding-bottom: 80px;
+        }
+        .region-container.active {
+            display: block;
+        }
+        .region-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+        .region-card {
+            background: rgba(255,255,255,0.05);
+            border-radius: 16px;
+            padding: 16px;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 1px solid rgba(255,255,255,0.1);
+            text-align: center;
+        }
+        .region-card:hover {
+            background: rgba(255,255,255,0.1);
+            transform: translateY(-2px);
+        }
+        .region-card .flag {
+            font-size: 36px;
+            margin-bottom: 8px;
+        }
+        .flag-img {
+            width: 40px;
+            height: 28px;
+            border-radius: 4px;
+            vertical-align: middle;
+        }
+        .region-card .name {
+            font-size: 15px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+        .region-card .style {
             font-size: 12px;
-            color: rgba(255,255,255,0.7);
+            color: rgba(255,255,255,0.5);
+        }
+        
+        /* 产区详情弹窗 */
+        .region-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.85);
+            z-index: 200;
+            overflow-y: auto;
+        }
+        .region-modal.active {
+            display: block;
+        }
+        .modal-content {
+            background: linear-gradient(135deg, #1a1a2e, #16213e);
+            min-height: 100vh;
+            padding: 20px;
+            padding-bottom: 40px;
+        }
+        .modal-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        .modal-back {
+            background: none;
+            border: none;
+            color: #fff;
+            font-size: 24px;
+            cursor: pointer;
+            padding: 4px;
+        }
+        .modal-title {
+            font-size: 22px;
+            font-weight: 600;
+        }
+        .modal-flag {
+            font-size: 36px;
+        }
+        .modal-intro {
+            background: rgba(255,255,255,0.05);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            line-height: 1.6;
+            color: rgba(255,255,255,0.8);
+        }
+        .modal-section-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #ff1493;
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .style-item {
+            background: rgba(255,255,255,0.05);
+            border-radius: 12px;
+            padding: 14px;
+            margin-bottom: 10px;
+        }
+        .style-name {
+            font-size: 15px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+        .style-desc {
+            font-size: 13px;
+            color: rgba(255,255,255,0.6);
+            margin-bottom: 8px;
+        }
+        .brewery-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+        .brewery-tag {
+            background: rgba(255,215,0,0.2);
+            color: #ffd700;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 12px;
         }
         
         /* 底部导航 */
@@ -164,31 +393,60 @@
 <body>
     <!-- 顶部导航 -->
     <div class="top-bar">
-        <button class="back-btn" onclick="window.location.href='index.html'">←</button>
-        <h1>🗺️ 城市精酿地图</h1>
+        <button class="back-btn" onclick="window.location.href='wine-map.html'">←</button>
+        <h1>🌍 探索精酿</h1>
     </div>
     
-    <!-- 城市选择 -->
-    <div class="city-selector">
-        <div class="city-list">
-            <button class="city-btn active" onclick="selectCity('shanghai')">上海</button>
-            <button class="city-btn disabled">北京</button>
-            <button class="city-btn disabled">深圳</button>
-            <button class="city-btn disabled">广州</button>
-            <button class="city-btn disabled">成都</button>
-            <button class="city-btn disabled">杭州</button>
-            <button class="city-btn disabled">南京</button>
-            <button class="city-btn disabled">武汉</button>
+    <!-- 模式切换 + 城市选择 -->
+    <div class="mode-switch">
+        <button class="mode-btn active" onclick="switchMode('city')">
+            <span>🗺️</span>
+            <span>城市精酿店</span>
+        </button>
+        <button class="mode-btn" onclick="switchMode('world')">
+            <span>🌍</span>
+            <span>世界产区</span>
+        </button>
+        <div class="city-selector" id="citySelector">
+            <div class="city-current" onclick="toggleCityDropdown()">
+                <span id="currentCityName">上海</span>
+                <span class="arrow">▼</span>
+            </div>
+            <div class="city-dropdown" id="cityDropdown">
+                <div class="city-dropdown-item active" onclick="selectCity('shanghai')">上海</div>
+                <div class="city-dropdown-item" onclick="selectCity('beijing')">北京</div>
+                <div class="city-dropdown-item" onclick="selectCity('shenzhen')">深圳</div>
+                <div class="city-dropdown-item" onclick="selectCity('guangzhou')">广州</div>
+                <div class="city-dropdown-item" onclick="selectCity('chengdu')">成都</div>
+                <div class="city-dropdown-item" onclick="selectCity('hangzhou')">杭州</div>
+                <div class="city-dropdown-item" onclick="selectCity('nanjing')">南京</div>
+                <div class="city-dropdown-item" onclick="selectCity('wuhan')">武汉</div>
+            </div>
         </div>
     </div>
     
-    <!-- 地图区域 -->
-    <div class="map-container" id="mapContainer">
-        <img src="shanghai-map.webp" alt="上海精酿地图" />
+    <!-- 主内容 -->
+    <div class="main-content">
+        <!-- 地图区域 -->
+        <div class="map-container active" id="mapContainer">
+            <div class="map-box">
+                <img src="shanghai-map.webp" alt="上海精酿地图" />
+            </div>
+        </div>
+        
+        <!-- 城市精酿店列表 -->
+        <div class="brewery-list" id="breweryList"></div>
+        
+        <!-- 世界产区 -->
+        <div class="region-container" id="regionContainer">
+            <div class="region-grid" id="regionGrid"></div>
+        </div>
     </div>
     
-    <!-- 底部提示 -->
-    <div class="map-hint">点击地图上的精酿酒吧标记查看详情</div>
+    <!-- 产区详情弹窗 -->
+    <div class="region-modal" id="regionModal">
+        <div class="modal-content" id="modalContent"></div>
+    </div>
     
     <!-- 底部导航 -->
     <div class="bottom-nav">
@@ -203,19 +461,285 @@
     </div>
     
     <script>
+        // 城市精酿店数据
+        const cityBreweries = {
+            beijing: [
+                { name: '大跃啤酒', style: '中式 IPA · 美式艾尔', desc: '胡同里的精酿先驱，中美融合风格' },
+                { name: '悠航啤酒', style: '增味小麦 · 世涛', desc: '豆汁世涛成名，创意不断' },
+                { name: '北平机器', style: '德式 · 比利时', desc: '传统风格扎实，门店众多' },
+                { name: 'Beijing Brewing', style: '美式艾尔', desc: '国际范儿，精酿老店' }
+            ],
+            shenzhen: [
+                { name: 'Blue Moon 深圳', style: '比利时白啤', desc: '北美经典，深圳首发' },
+                { name: 'VOOOV 深圳', style: 'IPA · 酸啤', desc: '本土精酿新势力' },
+                { name: '迷酿', style: '自酿', desc: '精酿小众实验' }
+            ],
+            guangzhou: [
+                { name: '珠江啤酒', style: '本地拉格', desc: '广州本土品牌，精酿转型' },
+                { name: 'Bravo 布拿拿', style: 'IPA · 世涛', desc: '华南精酿代表' },
+                { name: 'Hidden Lab', style: '实验精酿', desc: '小众创意精酿' }
+            ],
+            chengdu: [
+                { name: '丰收精酿', style: '川味增味', desc: '把四川味道酿进啤酒' },
+                { name: '道酿', style: 'IPA · 酸啤', desc: '成都本土精酿品牌' },
+                { name: '废墟精酿', style: '美式艾尔', desc: '老厂房的精酿新生' }
+            ],
+            hangzhou: [
+                { name: '千岛湖啤酒', style: '本土拉格', desc: '千岛湖水酿造，品质纯净' },
+                { name: '牛路野舍', style: '精酿小众', desc: '小众精品路线' },
+                { name: '18号酒馆', style: 'IPA · 皮尔森', desc: '杭州本土精酿' }
+            ],
+            nanjing: [
+                { name: '高大师精酿', style: '中式 IPA', desc: '南京精酿元老，中式创新' },
+                { name: '金陵精酿', style: '美式艾尔', desc: '秦淮河畔的精酿味道' },
+                { name: '独特手工啤', style: '实验风格', desc: '小众精酿探索' }
+            ],
+            wuhan: [
+                { name: '十八号酒馆 武汉', style: 'IPA · 拉格', desc: '武汉精酿代表' },
+                { name: '拾捌精酿', style: '蜂蜜艾尔', desc: '本土特色增味' },
+                { name: '云霓精酿', style: '比利时风格', desc: '欧式风格武汉演绎' }
+            ]
+        };
+        
+        // 世界产区数据
+        const regions = [
+            {
+                id: 'germany',
+                flag: '<img src="https://flagcdn.com/w40/de.png" class="flag-img">',
+                name: '德国',
+                shortStyle: '皮尔森 · 小麦啤',
+                intro: '德国是现代啤酒节的故乡，以纯净法（Reinheitsgebot）闻名世界。注重麦香与清爽口感，是入门精酿的最佳选择。',
+                styles: [
+                    { name: '德式皮尔森', desc: '金黄色酒体，干净的麦芽香，微苦收尾', tags: ['Paulaner', 'Weihenstephaner', 'Augustiner'] },
+                    { name: '德式小麦啤', desc: '朦胧金黄，香蕉与丁香风味，清爽易饮', tags: ['Erdinger', 'Franziskaner', 'Schneider'] },
+                    { name: '博克啤酒', desc: '深琥珀色，焦糖麦香，酒体饱满', tags: ['Ayinger Celebrator', 'Schlenkerla'] }
+                ]
+            },
+            {
+                id: 'belgium',
+                flag: '<img src="https://flagcdn.com/w40/be.png" class="flag-img">',
+                name: '比利时',
+                shortStyle: '赛松 · 修道院',
+                intro: '比利时啤酒以复杂风味与酿酒传统著称，修道院啤酒更是品质标杆。酵母驱动的果香与香料气息是其灵魂。',
+                styles: [
+                    { name: '比利时赛松', desc: '干型爽口，柑橘与辛香，余味干净', tags: ['Saison Dupont', 'Taras Boulba', 'Brasserie Dupont'] },
+                    { name: '修道院双料/三料', desc: '深色水果风味，酒精温暖，层次丰富', tags: ['Chimay', 'Orval', 'Westmalle'] },
+                    { name: '兰比克/酸啤', desc: '野菌发酵，酸樱桃与马厩气息', tags: ['Boon', 'Lindemans', 'Cantillon'] }
+                ]
+            },
+            {
+                id: 'usa',
+                flag: '<img src="https://flagcdn.com/w40/us.png" class="flag-img">',
+                name: '美国',
+                shortStyle: 'IPA · 精酿革命',
+                intro: '美国精酿革命发源地，以酒花香气闻名。IPA、美式琥珀艾尔等风格影响全球，创新的实验精神永不停止。',
+                styles: [
+                    { name: '美式 IPA', desc: '西楚/Mosaic 酒花热带果香，苦度适中', tags: ['Pliny the Elder', 'Lagunitas IPA', 'Stone IPA'] },
+                    { name: '西海岸 IPA', desc: '松针与柑橘，收尾干苦，酒体清澈', tags: ['Russian River', 'Ballast Point', 'Green Flash'] },
+                    { name: '牛奶世涛', desc: '乳糖添加，丝滑口感，巧克力咖啡', tags: ['Left Hand Milk Stout', 'Sam Milo'] }
+                ]
+            },
+            {
+                id: 'uk',
+                flag: '<img src="https://flagcdn.com/w40/gb.png" class="flag-img">',
+                name: '英国',
+                shortStyle: '波特 · 世涛',
+                intro: '英式啤酒讲究克制与平衡，麦芽主导的风味、温润的酒体。阴雨绵绵的午后，一杯温暖的波特最相宜。',
+                styles: [
+                    { name: '英式世涛', desc: '烤面包与咖啡风味，酒体厚重', tags: ["Fuller's London Pride", 'Samuel Smith'] },
+                    { name: '英式 IPA', desc: '福林顿酒花，树脂与焦糖，收尾柔和', tags: ['BrewDog Punk IPA', 'Thornbridge'] },
+                    { name: '大麦酒', desc: '高度数麦芽炸弹，温暖甜蜜', tags: ["Thomas Hardy's", "Harvey's Prince"] }
+                ]
+            },
+            {
+                id: 'czech',
+                flag: '<img src="https://flagcdn.com/w40/cz.png" class="flag-img">',
+                name: '捷克',
+                shortStyle: '原麦皮尔森',
+                intro: '皮尔森的发源地，啤酒酿造历史超过一千年。清澈金黄的拉格，纯净的麦香，是所有工业拉格的鼻祖。',
+                styles: [
+                    { name: '捷克皮尔森', desc: '金黄透亮，麦芽甜香，酒花微苦', tags: ['Pilsner Urquell', 'Budweiser Budvar', 'Kozel'] },
+                    { name: '捷克琥珀拉格', desc: '焦糖麦香，琥珀色泽', tags: ['Krušovice', 'Staropramen'] }
+                ]
+            },
+            {
+                id: 'china',
+                flag: '<img src="https://flagcdn.com/w40/cn.png" class="flag-img">',
+                name: '中国',
+                shortStyle: '本土精酿崛起',
+                intro: '中国精酿虽起步晚，但发展迅猛。以上海、北京、成都为代表，涌现出一批具有国际水准的本土酒厂。',
+                styles: [
+                    { name: '中式 IPA', desc: '国产酒花尝试，柑橘与茶香融合', tags: ['拳击猫', '高大师', '大跃'] },
+                    { name: '增味小麦', desc: '茉莉、桂花、枸杞等东方元素', tags: ['悠航', '当歌', '青门'] },
+                    { name: '中国式世涛', desc: '普洱、咖啡等本土增味', tags: ['纸风车', '赤耳', '明日酿造'] }
+                ]
+            },
+            {
+                id: 'australia',
+                flag: '<img src="https://flagcdn.com/w40/au.png" class="flag-img">',
+                name: '澳大利亚',
+                shortStyle: '新澳 IPA · 皮尔森',
+                intro: '澳大利亚精酿啤酒发展迅猛，以果香型 IPA 和创新增味著称。多元文化融合让澳式精酿风格独特。',
+                styles: [
+                    { name: '新澳 IPA', desc: '热带水果风味炸弹，酒体饱满，苦度柔和', tags: ['Stone & Wood', 'Mosaic', 'Boatrocker'] },
+                    { name: '澳式皮尔森', desc: '清爽解暑，麦芽甜香与酒花平衡', tags: ['James Squire', 'Carlton'] },
+                    { name: '野菌酸啤', desc: '野菌与橡木桶陈酿，酸爽复杂', tags: ['Boatrocker', 'Blasta Brewing'] }
+                ]
+            },
+            {
+                id: 'nz',
+                flag: '<img src="https://flagcdn.com/w40/nz.png" class="flag-img">',
+                name: '新西兰',
+                shortStyle: '本地酒花 · 轻盈派',
+                intro: '新西兰拥有独特的本地酒花（如 Nelson Sauvin），以清爽优雅的风格闻名。纯净的水源和创新的酿酒师让新西兰精酿独树一帜。',
+                styles: [
+                    { name: '新西兰 IPA', desc: '白苏维浓酒花特有的醋栗和热带果香，清新脱俗', tags: ['Garage Project', 'Liberty', '8 Wired'] },
+                    { name: '酸艾尔', desc: '自然酸酿，果香活泼，清爽宜人', tags: ['Garage Project', 'Panhead'] },
+                    { name: '皮尔森/拉格', desc: '纯净爽口，突出麦芽香', tags: ['Emerson\'s', 'Tui'] }
+                ]
+            }
+        ];
+        
+        // 模式切换
+        function switchMode(mode) {
+            document.querySelectorAll('.mode-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.closest('.mode-btn').classList.add('active');
+            
+            const mapContainer = document.getElementById('mapContainer');
+            const regionContainer = document.getElementById('regionContainer');
+            const citySelector = document.getElementById('citySelector');
+            
+            if (mode === 'city') {
+                mapContainer.classList.add('active');
+                regionContainer.classList.remove('active');
+                citySelector.style.display = 'block';
+                document.querySelector('.main-content').style.paddingTop = '120px';
+            } else {
+                mapContainer.classList.remove('active');
+                regionContainer.classList.add('active');
+                citySelector.style.display = 'none';
+                document.querySelector('.main-content').style.paddingTop = '110px';
+            }
+        }
+        
+        // 切换城市下拉
+        function toggleCityDropdown() {
+            const dropdown = document.getElementById('cityDropdown');
+            const current = document.querySelector('.city-current');
+            dropdown.classList.toggle('open');
+            current.classList.toggle('open');
+        }
+        
+        // 选择城市
         function selectCity(city) {
-            document.querySelectorAll('.city-btn').forEach(btn => {
-                btn.classList.remove('active');
+            const cityNames = {
+                shanghai: '上海', beijing: '北京', shenzhen: '深圳', guangzhou: '广州',
+                chengdu: '成都', hangzhou: '杭州', nanjing: '南京', wuhan: '武汉'
+            };
+            
+            // 更新当前显示
+            document.getElementById('currentCityName').textContent = cityNames[city];
+            
+            // 更新下拉高亮
+            document.querySelectorAll('.city-dropdown-item').forEach(item => {
+                item.classList.remove('active');
             });
             event.target.classList.add('active');
             
+            // 关闭下拉
+            document.getElementById('cityDropdown').classList.remove('open');
+            document.querySelector('.city-current').classList.remove('open');
+            
             const mapContainer = document.getElementById('mapContainer');
+            const breweryList = document.getElementById('breweryList');
+            
             if (city === 'shanghai') {
-                mapContainer.innerHTML = '<img src="shanghai-map.webp" alt="上海精酿地图" />';
+                mapContainer.style.display = 'block';
+                breweryList.classList.remove('active');
             } else {
-                mapContainer.innerHTML = '<div style="color:rgba(255,255,255,0.5);text-align:center;"><p>🚧 ' + city.toUpperCase() + ' 地图正在制作中...</p></div>';
+                mapContainer.style.display = 'none';
+                breweryList.classList.add('active');
+                renderBreweries(city);
             }
         }
+        
+        // 点击其他地方关闭下拉
+        document.addEventListener('click', function(e) {
+            const selector = document.getElementById('citySelector');
+            if (!selector.contains(e.target)) {
+                document.getElementById('cityDropdown').classList.remove('open');
+                document.querySelector('.city-current').classList.remove('open');
+            }
+        });
+        
+        // 渲染精酿店列表
+        function renderBreweries(city) {
+            const list = document.getElementById('breweryList');
+            const breweries = cityBreweries[city] || [];
+            const cityNames = {
+                beijing: '北京', shenzhen: '深圳', guangzhou: '广州',
+                chengdu: '成都', hangzhou: '杭州', nanjing: '南京', wuhan: '武汉'
+            };
+            
+            list.innerHTML = `
+                <div class="brewery-city-name">${cityNames[city]} 精酿推荐</div>
+                ${breweries.map(b => `
+                    <div class="brewery-item">
+                        <div class="brewery-name">${b.name}</div>
+                        <div class="brewery-style">${b.style}</div>
+                        <div class="brewery-desc">${b.desc}</div>
+                    </div>
+                `).join('')}
+            `;
+        }
+        
+        // 渲染产区卡片
+        function renderRegions() {
+            const grid = document.getElementById('regionGrid');
+            grid.innerHTML = regions.map(r => `
+                <div class="region-card" onclick="showRegion('${r.id}')">
+                    <div class="flag">${r.flag}</div>
+                    <div class="name">${r.name}</div>
+                    <div class="style">${r.shortStyle}</div>
+                </div>
+            `).join('');
+        }
+        
+        // 显示产区详情
+        function showRegion(id) {
+            const region = regions.find(r => r.id === id);
+            const modal = document.getElementById('regionModal');
+            const content = document.getElementById('modalContent');
+            
+            content.innerHTML = `
+                <div class="modal-header">
+                    <button class="modal-back" onclick="closeModal()">←</button>
+                    <span class="modal-flag">${region.flag}</span>
+                    <span class="modal-title">${region.name}</span>
+                </div>
+                <div class="modal-intro">${region.intro}</div>
+                
+                <div class="modal-section-title">代表风格</div>
+                ${region.styles.map(s => `
+                    <div class="style-item">
+                        <div class="style-name">${region.flag} ${s.name}</div>
+                        <div class="style-desc">${s.desc}</div>
+                        <div class="brewery-tags">
+                            ${s.tags.map(t => `<span class="brewery-tag">${t}</span>`).join('')}
+                        </div>
+                    </div>
+                `).join('')}
+            `;
+            
+            modal.classList.add('active');
+        }
+        
+        function closeModal() {
+            document.getElementById('regionModal').classList.remove('active');
+        }
+        
+        // 初始化
+        renderRegions();
     </script>
 </body>
 </html>

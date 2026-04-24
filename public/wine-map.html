@@ -1,0 +1,870 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>探索葡萄酒 - Wine Lab</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #1a0a20, #2d1a3d, #0f0a15);
+            min-height: 100vh;
+            color: #fff;
+            overflow-x: hidden;
+        }
+        
+        /* 顶部导航 */
+        .top-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 56px;
+            background: rgba(26, 10, 32, 0.95);
+            backdrop-filter: blur(10px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 16px;
+            z-index: 100;
+            border-bottom: 1px solid rgba(114, 34, 243, 0.3);
+        }
+        .top-bar h1 {
+            font-size: 18px;
+            font-weight: 600;
+        }
+        .back-btn {
+            position: absolute;
+            left: 16px;
+            background: none;
+            border: none;
+            color: #fff;
+            font-size: 24px;
+            cursor: pointer;
+            padding: 4px;
+        }
+        
+        /* 模式切换 */
+        .mode-switch {
+            position: fixed;
+            top: 56px;
+            left: 0;
+            right: 0;
+            padding: 12px 16px;
+            background: rgba(26, 10, 32, 0.95);
+            backdrop-filter: blur(10px);
+            z-index: 90;
+            border-bottom: 1px solid rgba(114, 34, 243, 0.2);
+            display: flex;
+            gap: 8px;
+        }
+        .mode-btn {
+            padding: 10px 16px;
+            border-radius: 12px;
+            border: 1px solid rgba(114, 34, 243, 0.3);
+            background: rgba(114, 34, 243, 0.05);
+            color: rgba(255,255,255,0.7);
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            flex-shrink: 0;
+        }
+        .mode-btn.active {
+            background: linear-gradient(135deg, #7222F3, #A855F7);
+            border-color: #7222F3;
+            color: #fff;
+        }
+        
+        /* 城市选择器 */
+        .city-selector {
+            flex: 1;
+            position: relative;
+            display: flex;
+            justify-content: flex-end;
+        }
+        .city-current {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 10px 14px;
+            background: rgba(114, 34, 243, 0.1);
+            border: 1px solid rgba(114, 34, 243, 0.3);
+            border-radius: 12px;
+            color: #fff;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .city-current:hover {
+            background: rgba(114, 34, 243, 0.2);
+        }
+        .city-current .arrow {
+            transition: transform 0.3s;
+            font-size: 10px;
+        }
+        .city-current.open .arrow {
+            transform: rotate(180deg);
+        }
+        .city-dropdown {
+            display: none;
+            position: absolute;
+            top: 100%;
+            right: 0;
+            margin-top: 4px;
+            background: rgba(26, 10, 32, 0.98);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(114, 34, 243, 0.3);
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+            max-height: 300px;
+            overflow-y: auto;
+            z-index: 100;
+        }
+        .city-dropdown.open {
+            display: block;
+        }
+        .city-dropdown-item {
+            padding: 10px 16px;
+            color: rgba(255,255,255,0.8);
+            font-size: 14px;
+            cursor: pointer;
+            transition: background 0.2s;
+            white-space: nowrap;
+        }
+        .city-dropdown-item:hover {
+            background: rgba(114, 34, 243, 0.1);
+        }
+        .city-dropdown-item.active {
+            background: linear-gradient(135deg, #7222F3, #A855F7);
+            color: #fff;
+        }
+        
+        /* 精酿店列表 */
+        .brewery-list {
+            display: none;
+            padding: 12px 16px;
+            padding-bottom: 80px;
+        }
+        .brewery-list.active {
+            display: block;
+        }
+        .brewery-city-name {
+            font-size: 14px;
+            color: rgba(255,255,255,0.5);
+            margin-bottom: 12px;
+            padding-top: 8px;
+        }
+        .brewery-item {
+            background: rgba(255,255,255,0.05);
+            border-radius: 12px;
+            padding: 14px;
+            margin-bottom: 10px;
+            border: 1px solid rgba(114, 34, 243, 0.2);
+        }
+        .brewery-name {
+            font-size: 15px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+        .brewery-style {
+            font-size: 12px;
+            color: #A855F7;
+            margin-bottom: 4px;
+        }
+        .brewery-desc {
+            font-size: 13px;
+            color: rgba(255,255,255,0.6);
+        }
+        
+        /* 主内容区 */
+        .main-content {
+            padding-top: 120px;
+        }
+        
+        /* 地图区域 */
+        .map-container {
+            display: none;
+            padding: 10px;
+        }
+        .map-container.active {
+            display: block;
+        }
+        .map-box {
+            background: rgba(255,255,255,0.05);
+            border-radius: 16px;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: calc(100vh - 180px);
+        }
+        .map-box img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+        
+        /* 世界产区 */
+        .region-container {
+            display: none;
+            padding: 12px 16px;
+            padding-bottom: 80px;
+        }
+        .region-container.active {
+            display: block;
+        }
+        
+        /* 世界产区标题 */
+        .world-header {
+            text-align: center;
+            padding: 16px 0;
+            margin-bottom: 8px;
+        }
+        .world-header h2 {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+        .world-header p {
+            font-size: 12px;
+            color: rgba(255,255,255,0.5);
+        }
+        
+        /* 产区分类 */
+        .region-section {
+            margin-bottom: 24px;
+        }
+        .region-section-title {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 12px;
+            padding: 8px 12px;
+            border-radius: 8px;
+        }
+        .region-section-title.old-world {
+            background: rgba(139, 90, 43, 0.2);
+            border-left: 3px solid #8B5A2B;
+        }
+        .region-section-title.new-world {
+            background: rgba(46, 125, 50, 0.2);
+            border-left: 3px solid #2E7D32;
+        }
+        .region-section-title h3 {
+            font-size: 16px;
+            font-weight: 600;
+        }
+        .region-section-title .subtitle {
+            font-size: 11px;
+            color: rgba(255,255,255,0.5);
+        }
+        
+        .region-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+        .region-card {
+            background: rgba(255,255,255,0.05);
+            border-radius: 16px;
+            padding: 16px;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 1px solid rgba(255,255,255,0.1);
+            text-align: center;
+        }
+        .region-card:hover {
+            background: rgba(255,255,255,0.1);
+            transform: translateY(-2px);
+        }
+        .region-card .flag {
+            font-size: 36px;
+            margin-bottom: 8px;
+        }
+        .flag-img {
+            width: 40px;
+            height: 28px;
+            border-radius: 4px;
+            vertical-align: middle;
+        }
+        .region-card .name {
+            font-size: 15px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+        .region-card .style {
+            font-size: 12px;
+            color: rgba(255,255,255,0.5);
+        }
+        
+        /* 统一标签 */
+        .region-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            margin-top: 8px;
+            justify-content: center;
+        }
+        .region-tag {
+            background: rgba(114, 34, 243, 0.2);
+            color: #A855F7;
+            padding: 2px 8px;
+            border-radius: 8px;
+            font-size: 10px;
+        }
+        
+        /* 产区详情弹窗 */
+        .region-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.85);
+            z-index: 200;
+            overflow-y: auto;
+        }
+        .region-modal.active {
+            display: block;
+        }
+        .modal-content {
+            background: linear-gradient(135deg, #1a0a20, #2d1a3d);
+            min-height: 100vh;
+            padding: 20px;
+            padding-bottom: 40px;
+        }
+        .modal-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        .modal-back {
+            background: none;
+            border: none;
+            color: #fff;
+            font-size: 24px;
+            cursor: pointer;
+            padding: 4px;
+        }
+        .modal-title {
+            font-size: 22px;
+            font-weight: 600;
+        }
+        .modal-flag {
+            font-size: 36px;
+        }
+        .modal-intro {
+            background: rgba(114, 34, 243, 0.1);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            line-height: 1.6;
+            color: rgba(255,255,255,0.8);
+            border-left: 3px solid #7222F3;
+        }
+        .modal-section-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #A855F7;
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .grape-item {
+            background: rgba(255,255,255,0.05);
+            border-radius: 12px;
+            padding: 14px;
+            margin-bottom: 10px;
+        }
+        .grape-name {
+            font-size: 15px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+        .grape-desc {
+            font-size: 13px;
+            color: rgba(255,255,255,0.6);
+            margin-bottom: 8px;
+        }
+        .wine-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+        .wine-tag {
+            background: rgba(114, 34, 243, 0.2);
+            color: #A855F7;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+        }
+        
+        /* 底部导航 */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            display: flex;
+            justify-content: space-around;
+            padding: 8px 8px;
+            padding-bottom: max(8px, env(safe-area-inset-bottom));
+            background: rgba(26, 10, 32, 0.95);
+            backdrop-filter: blur(10px);
+            border-top: 1px solid rgba(114, 34, 243, 0.2);
+            z-index: 100;
+        }
+        .nav-btn {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 6px 8px;
+            border-radius: 12px;
+            border: none;
+            background: none;
+            color: rgba(255,255,255,0.6);
+            font-size: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            min-width: 60px;
+        }
+        .nav-btn .icon {
+            font-size: 20px;
+            margin-bottom: 2px;
+        }
+        .nav-btn.active {
+            color: #A855F7;
+        }
+        .nav-btn.accent {
+            background: linear-gradient(135deg, #722f37, #9b2335);
+            color: #fff;
+            box-shadow: 0 4px 30px rgba(155, 35, 53, 0.4);
+            border: 1px solid rgba(155, 35, 53, 0.5);
+        }
+    </style>
+</head>
+<body>
+    <!-- 顶部导航 -->
+    <div class="top-bar">
+        <button class="back-btn" onclick="window.location.href='wine.html'">←</button>
+        <h1>🍷 探索葡萄酒</h1>
+    </div>
+    
+    <!-- 模式切换 + 城市选择 -->
+    <div class="mode-switch">
+        <button class="mode-btn active" onclick="switchMode('city', this)">
+            <span>📍</span>
+            <span>上海地标</span>
+        </button>
+        <button class="mode-btn" onclick="switchMode('world', this)">
+            <span>🌍</span>
+            <span>世界产区</span>
+        </button>
+        <div class="city-selector" id="citySelector">
+            <div class="city-current" onclick="toggleCityDropdown()">
+                <span id="currentCityName">上海</span>
+                <span class="arrow">▼</span>
+            </div>
+            <div class="city-dropdown" id="cityDropdown">
+                <div class="city-dropdown-item active" onclick="selectCity('shanghai')">上海</div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 主内容 -->
+    <div class="main-content">
+        <!-- 地图区域（暂时不用） -->
+        <div class="map-container" id="mapContainer">
+        </div>
+        
+        <!-- 城市精酿店列表 -->
+        <div class="brewery-list active" id="breweryList"></div>
+        
+        <!-- 世界产区 -->
+        <div class="region-container" id="regionContainer">
+            <div class="world-header">
+                <h2>世界葡萄酒地图</h2>
+                <p>旧世界 vs 新世界 · 二分法认知体系</p>
+            </div>
+            <div id="regionGrid"></div>
+        </div>
+    </div>
+    
+    <!-- 产区详情弹窗 -->
+    <div class="region-modal" id="regionModal">
+        <div class="modal-content" id="modalContent"></div>
+    </div>
+    
+    <!-- 底部导航 -->
+    <div class="bottom-nav">
+        <button class="nav-btn" onclick="window.location.href='index.html'">
+            <span class="icon">🍺</span>
+            <span>喝啤酒</span>
+        </button>
+        <button class="nav-btn" onclick="window.location.href='wine.html'">
+            <span class="icon">🍷</span>
+            <span>喝葡萄酒</span>
+        </button>
+    </div>
+    
+    <script>
+        // 上海葡萄酒好店数据
+        const cityBreweries = {
+            shanghai: [
+                { name: '葡道', style: '专业葡萄酒 · 侍酒师推荐', desc: '武定西路老店，葡萄酒百科全书' },
+                { name: '第一家Wine', style: '自然酒 · 自然酒吧', desc: '复兴中路，自然酒集合店' },
+                { name: 'Vinism', style: '生物动力法 · 小众精品', desc: '有机/生物动力法葡萄酒专营' },
+                { name: '都由 wine bar', style: '轻松氛围 · 杯卖', desc: '富民路，适合初学者的轻松酒吧' },
+                { name: '隔壁餐厅', style: '配酒西餐 · 选酒精良', desc: '适合约会的高端餐酒馆' }
+            ]
+        };
+        
+        // 世界产区数据
+        const regions = [
+            // 旧世界
+            {
+                id: 'france',
+                flag: '<img src="https://flagcdn.com/w40/fr.png" class="flag-img">',
+                name: '法国',
+                shortStyle: '波尔多 · 勃艮第 · 香槟',
+                worldType: 'old',
+                tags: ['千年历史', '法定产区', '风土主导'],
+                intro: '法国是现代葡萄酒体系的奠基者，以 AOC 法定产区制度闻名世界。波尔多、勃艮第、香槟各具特色，是葡萄酒爱好者的朝圣之地。',
+                grapes: [
+                    { name: '波尔多混酿', desc: '赤霞珠+美乐+品丽珠，结构复杂' },
+                    { name: '黑皮诺', desc: '勃艮第精髓，细腻优雅' },
+                    { name: '霞多丽', desc: '白葡萄酒之王，过桶与不过桶两派' }
+                ],
+                wines: ['Château Margaux', 'DRC罗曼尼康帝', 'Dom Pérignon香槟']
+            },
+            {
+                id: 'italy',
+                flag: '<img src="https://flagcdn.com/w40/it.png" class="flag-img">',
+                name: '意大利',
+                shortStyle: '巴罗洛 · 布鲁奈罗 · 经典基安蒂',
+                worldType: 'old',
+                tags: ['DOCG认证', '本土品种', '酸度活泼'],
+                intro: '意大利是世界上葡萄品种最多的国家，从北到南风格迥异。巴罗洛、布鲁奈罗等顶级佳酿与日常餐酒共存，选择极其丰富。',
+                grapes: [
+                    { name: '桑娇维塞', desc: '托斯卡纳之王，酸樱桃与皮革' },
+                    { name: '内比奥罗', desc: '巴罗洛的灵魂，高单宁高酸' },
+                    { name: '普罗塞克', desc: '意大利起泡酒，清爽果香' }
+                ],
+                wines: ['Gaja嘉雅', 'Biondi-Santi布鲁奈罗', 'Ca del Bosco起泡酒']
+            },
+            {
+                id: 'spain',
+                flag: '<img src="https://flagcdn.com/w40/es.png" class="flag-img">',
+                name: '西班牙',
+                shortStyle: '里奥哈 · 杜埃罗河岸 · 卡瓦',
+                worldType: 'old',
+                tags: ['陈年体系', '丹魄品种', '高性价比'],
+                intro: '西班牙以陈年体系（Joven/Crianza/Reserva/Gran Reserva）和丹魄葡萄著称。里奥哈里奥哈是西班牙葡萄酒的代名词，卡瓦起泡酒是香槟的平替。',
+                grapes: [
+                    { name: '丹魄', desc: '西班牙代表品种，红色水果与香料' },
+                    { name: '歌海娜', desc: '老藤歌海娜，酒体饱满' }
+                ],
+                wines: ['Marqués de Riscal', 'Pingus平古斯', 'Freixenet菲斯奈特']
+            },
+            {
+                id: 'germany',
+                flag: '<img src="https://flagcdn.com/w40/de.png" class="flag-img">',
+                name: '德国',
+                shortStyle: '雷司令 · 摩泽尔 · 晚收甜白',
+                worldType: 'old',
+                tags: ['雷司令天堂', '清爽高酸', '从干到甜'],
+                intro: '德国是雷司令的天堂，以清爽高酸的干白到极甜的贵腐酒闻名。摩泽尔产区的板岩土壤赋予葡萄酒独特的矿物风味。',
+                grapes: [
+                    { name: '雷司令', desc: '汽油+蜂蜜+花香，从干到甜' }
+                ],
+                wines: ['Dr. Loosen露森', 'Egon Müller伊贡穆勒']
+            },
+            {
+                id: 'portugal',
+                flag: '<img src="https://flagcdn.com/w40/pt.png" class="flag-img">',
+                name: '葡萄牙',
+                shortStyle: '波特酒 · 绿酒产区 · 本土品种',
+                worldType: 'old',
+                tags: ['波特传统', '本土品种', '杜罗河谷'],
+                intro: '葡萄牙以波特酒闻名于世，同时拥有众多独特的本土品种。杜罗河谷的梯田葡萄园是联合国文化遗产。',
+                grapes: [
+                    { name: '国产多瑞加', desc: '波特酒核心品种' },
+                    { name: '阿林图', desc: '绿酒产区代表品种' }
+                ],
+                wines: ['Graham\'s格雷厄姆', 'Niepoort尼伯特']
+            },
+            // 新世界
+            {
+                id: 'usa',
+                flag: '<img src="https://flagcdn.com/w40/us.png" class="flag-img">',
+                name: '美国',
+                shortStyle: '纳帕谷 · 索诺玛 · 加州',
+                worldType: 'new',
+                tags: ['果香浓郁', '新橡木桶', '享乐主义'],
+                intro: '美国是全球最大的葡萄酒消费市场，纳帕谷的赤霞珠享誉世界。风格果香浓郁、酒体饱满，避开了旧世界的克制与内敛。',
+                grapes: [
+                    { name: '赤霞珠', desc: '纳帕代表作，重酒体高成熟度' },
+                    { name: '仙粉黛', desc: '美国特色品种，红色水果与甜辣' }
+                ],
+                wines: ['Opus One作品一号', 'Screaming Eagle啸鹰', 'Robert Mondavi']
+            },
+            {
+                id: 'chile',
+                flag: '<img src="https://flagcdn.com/w40/cl.png" class="flag-img">',
+                name: '智利',
+                shortStyle: '中央山谷 · 佳美娜 · 高性价比',
+                worldType: 'new',
+                tags: ['佳美娜品种', '高性价比', '纯净果香'],
+                intro: '智利拥有得天独厚的自然屏障（沙漠、雪山、海洋），葡萄园几乎不受病虫害影响。佳美娜是其特色品种，卡门内里是平价好酒的代名词。',
+                grapes: [
+                    { name: '佳美娜', desc: '智利特色，智利的赤霞珠' },
+                    { name: '赤霞珠', desc: '中央山谷旗舰品种' }
+                ],
+                wines: ['Concha y Toro干露', 'Almaviva活灵魂', 'Errazuriz伊拉苏']
+            },
+            {
+                id: 'argentina',
+                flag: '<img src="https://flagcdn.com/w40/ar.png" class="flag-img">',
+                name: '阿根廷',
+                shortStyle: '门多萨 · 马尔贝克 · 安第斯山',
+                worldType: 'new',
+                tags: ['马尔贝克故乡', '高海拔', '浓郁饱满'],
+                intro: '阿根廷是马尔贝克的故乡，门多萨产区的高海拔葡萄园赋予葡萄酒纯净的果香与清新的酸度。性价比极高，是日常饮用的绝佳选择。',
+                grapes: [
+                    { name: '马尔贝克', desc: '阿根廷名片，浓郁甜美' },
+                    { name: '特浓情', desc: '芳香型白葡萄，玫瑰与荔枝' }
+                ],
+                wines: ['Catena Zapata卡帝娜', 'Achaval Ferrer阿查瓦尔']
+            },
+            {
+                id: 'australia',
+                flag: '<img src="https://flagcdn.com/w40/au.png" class="flag-img">',
+                name: '澳大利亚',
+                shortStyle: '巴罗萨 · 设拉子 · 玛格丽特河',
+                worldType: 'new',
+                tags: ['设拉子王国', '老藤', '果香澎湃'],
+                intro: '澳大利亚以设拉子（西拉）闻名世界，巴罗萨谷的老藤设拉子更是珍宝。风格果香澎湃、口感饱满，从日常口粮到顶级膜拜酒皆有。',
+                grapes: [
+                    { name: '设拉子', desc: '澳洲西拉，黑色水果与白胡椒' },
+                    { name: '霞多丽', desc: '猎人谷风格，清新优雅' }
+                ],
+                wines: ['Penfolds Grange奔富葛兰许', 'Henschke翰斯科', 'Leeuwin Estate露纹酒庄']
+            },
+            {
+                id: 'nz',
+                flag: '<img src="https://flagcdn.com/w40/nz.png" class="flag-img">',
+                name: '新西兰',
+                shortStyle: '马尔堡 · 长相思 · 纯净',
+                worldType: 'new',
+                tags: ['长相思故乡', '纯净清爽', '黑皮诺崛起'],
+                intro: '新西兰马尔堡的长相思享誉全球，以纯净的果香与清爽的酸度著称。黑皮诺近年来也备受关注，霍克斯湾和马丁堡是重要产区。',
+                grapes: [
+                    { name: '长相思', desc: '马尔堡代表作，青草与百香果' },
+                    { name: '黑皮诺', desc: '新兴势力，优雅细腻' }
+                ],
+                wines: ['Cloudy Bay云雾之湾', 'Auntsfield奥茨菲尔德', 'Craggy Range克拉吉']
+            },
+            {
+                id: 'southafrica',
+                flag: '<img src="https://flagcdn.com/w40/za.png" class="flag-img">',
+                name: '南非',
+                shortStyle: '斯泰伦博斯 · 皮诺塔吉 · 开普五贤',
+                worldType: 'new',
+                tags: ['皮诺塔吉', '老藤', '彩虹之国'],
+                intro: '南非是新世界中的旧世界，拥有300多年的酿酒历史。皮诺塔吉是其特色品种，斯泰伦博斯是核心产区，风格兼具果香与结构。',
+                grapes: [
+                    { name: '皮诺塔吉', desc: '南非特色品种' },
+                    { name: '白诗南', desc: '老藤白诗南，风格多变' }
+                ],
+                wines: ['Kanonkop康诺普', 'Rust en Vrede静修酒庄']
+            }
+        ];
+        
+        // 模式切换
+        function switchMode(mode, btn) {
+            document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            
+            const mapContainer = document.getElementById('mapContainer');
+            const breweryList = document.getElementById('breweryList');
+            const regionContainer = document.getElementById('regionContainer');
+            const citySelector = document.getElementById('citySelector');
+            
+            if (mode === 'city') {
+                mapContainer.classList.remove('active');
+                breweryList.classList.add('active');
+                regionContainer.classList.remove('active');
+                citySelector.style.display = 'flex';
+            } else {
+                mapContainer.classList.remove('active');
+                breweryList.classList.remove('active');
+                regionContainer.classList.add('active');
+                citySelector.style.display = 'none';
+            }
+        }
+        
+        // 切换城市下拉
+        function toggleCityDropdown() {
+            const dropdown = document.getElementById('cityDropdown');
+            const current = document.querySelector('.city-current');
+            dropdown.classList.toggle('open');
+            current.classList.toggle('open');
+        }
+        
+        // 选择城市
+        function selectCity(city) {
+            const cityNames = { shanghai: '上海' };
+            
+            document.getElementById('currentCityName').textContent = cityNames[city];
+            
+            document.querySelectorAll('.city-dropdown-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            document.getElementById('cityDropdown').classList.remove('open');
+            document.querySelector('.city-current').classList.remove('open');
+            
+            const mapContainer = document.getElementById('mapContainer');
+            const breweryList = document.getElementById('breweryList');
+            
+            if (city === 'shanghai') {
+                mapContainer.style.display = 'none';
+                breweryList.classList.add('active');
+                renderBreweries(city);
+            } else {
+                mapContainer.style.display = 'none';
+                breweryList.classList.add('active');
+                renderBreweries(city);
+            }
+        }
+        
+        // 渲染精酿店列表
+        function renderBreweries(city) {
+            const list = document.getElementById('breweryList');
+            const breweries = cityBreweries[city] || [];
+            const cityNames = { shanghai: '上海' };
+            
+            list.innerHTML = `
+                <div class="brewery-city-name">🍷 ${cityNames[city]} 葡萄酒好店</div>
+                ${breweries.map(b => `
+                    <div class="brewery-item">
+                        <div class="brewery-name">${b.name}</div>
+                        <div class="brewery-style">${b.style}</div>
+                        <div class="brewery-desc">${b.desc}</div>
+                    </div>
+                `).join('')}
+            `;
+        }
+        
+        // 渲染产区卡片
+        function renderRegions() {
+            const grid = document.getElementById('regionGrid');
+            
+            const oldWorld = regions.filter(r => r.worldType === 'old');
+            const newWorld = regions.filter(r => r.worldType === 'new');
+            
+            grid.innerHTML = `
+                <div class="region-section">
+                    <div class="region-section-title old-world">
+                        <h3>🏛️ 旧世界 Old World</h3>
+                        <span class="subtitle">千年酿酒历史 · 法定产区严格 · 风格内敛</span>
+                    </div>
+                    <div class="region-grid">
+                        ${oldWorld.map(r => `
+                            <div class="region-card" onclick="showRegion('${r.id}')">
+                                <div class="flag">${r.flag}</div>
+                                <div class="name">${r.name}</div>
+                                <div class="style">${r.shortStyle}</div>
+                                <div class="region-tags">
+                                    ${r.tags.map(t => `<span class="region-tag">${t}</span>`).join('')}
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+                
+                <div class="region-section">
+                    <div class="region-section-title new-world">
+                        <h3>🌱 新世界 New World</h3>
+                        <span class="subtitle">现代化酿造 · 果香浓郁 · 风格直白</span>
+                    </div>
+                    <div class="region-grid">
+                        ${newWorld.map(r => `
+                            <div class="region-card" onclick="showRegion('${r.id}')">
+                                <div class="flag">${r.flag}</div>
+                                <div class="name">${r.name}</div>
+                                <div class="style">${r.shortStyle}</div>
+                                <div class="region-tags">
+                                    ${r.tags.map(t => `<span class="region-tag">${t}</span>`).join('')}
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+        }
+        
+        // 显示产区详情
+        function showRegion(id) {
+            const region = regions.find(r => r.id === id);
+            const modal = document.getElementById('regionModal');
+            const content = document.getElementById('modalContent');
+            
+            content.innerHTML = `
+                <div class="modal-header">
+                    <button class="modal-back" onclick="closeModal()">←</button>
+                    <span class="modal-flag">${region.flag}</span>
+                    <span class="modal-title">${region.name}</span>
+                </div>
+                <div class="modal-intro">${region.intro}</div>
+                
+                <div class="modal-section-title">🍇 代表葡萄品种</div>
+                ${region.grapes.map(g => `
+                    <div class="grape-item">
+                        <div class="grape-name">${region.flag} ${g.name}</div>
+                        <div class="grape-desc">${g.desc}</div>
+                    </div>
+                `).join('')}
+                
+                <div class="modal-section-title">🍷 代表酒款</div>
+                <div class="wine-tags">
+                    ${region.wines.map(w => `<span class="wine-tag">${w}</span>`).join('')}
+                </div>
+            `;
+            
+            modal.classList.add('active');
+        }
+        
+        function closeModal() {
+            document.getElementById('regionModal').classList.remove('active');
+        }
+        
+        // 点击其他地方关闭下拉
+        document.addEventListener('click', function(e) {
+            const selector = document.getElementById('citySelector');
+            if (!selector.contains(e.target)) {
+                document.getElementById('cityDropdown').classList.remove('open');
+                document.querySelector('.city-current').classList.remove('open');
+            }
+        });
+        
+        // 初始化
+        renderRegions();
+        renderBreweries('shanghai'); // 默认显示上海
+    </script>
+</body>
+</html>

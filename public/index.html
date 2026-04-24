@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BEER LAB - 夯啤</title>
-    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script src="d3.min.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -182,6 +182,13 @@
             pointer-events: none;
             font-weight: 700;
             text-shadow: 0 1px 3px rgba(0,0,0,0.8);
+        }
+        .node-emoji {
+            fill: rgba(255,255,255,0.95);
+            text-shadow: 0 2px 8px rgba(0,0,0,0.5), 0 0 20px rgba(255,255,255,0.3);
+            font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif;
+            dominant-baseline: central;
+            user-select: none;
         }
         .link { stroke: rgba(0,0,0,0.06); stroke-width: 1; }
         
@@ -1309,48 +1316,67 @@
     
     <script>
 var beers = [
-    {name:'皮尔森',nameEn:'Pilsner',abv:'4-5%',quadrant:0,style:'拉格酵母底层发酵，口感干净利落，适合大口畅饮。',colorHex:'#f4d03f',brand:'青岛、Asahi朝日、科罗娜',tags:['入门首选','清爽解渴'],
+    // 左上 - 清爽轻盈型
+    {name:'🍺皮尔森',nameEn:'Pilsner',abv:'4-5%',quadrant:'lightFresh',style:'拉格酵母底层发酵，口感干净利落，是啤酒界的"白T恤"——简约但永远不过时。',colorHex:'#f4d03f',brand:'青岛、Asahi朝日、科罗娜',tags:['入门首选','清爽解渴'],
      glossary:['拉格：低温发酵，酵母在桶底工作，发酵彻底','拉格口感干净：杂质少，味道纯粹'],
-     x:0.2, y:0.2},
-    {name:'小麦白啤',nameEn:'Wheat Beer',abv:'4-6%',quadrant:0,style:'小麦占40%以上，蛋白质丰富带来云雾般朦胧酒体。',colorHex:'#f5e6ca',brand:'福佳白、蓝月',tags:['颜值担当','女生友好'],
-     glossary:['拉格：低温发酵，酵母在桶底工作，发酵彻底','拉格口感干净：杂质少，味道纯粹'],
-     x:0.35, y:0.25},
-    {name:'社交IPA',nameEn:'Session IPA',abv:'4-6%',quadrant:0,style:'保持IPA香气但降低酒精度，随时开喝不设限。',colorHex:'#e67e22',brand:'Lagunitas走开',tags:['社交神器','低醉不贵'],
-     glossary:['IPA：印度淡色艾尔，酒花香气浓郁的啤酒风格','Session：可连续畅饮的低酒精度定位'],
-     x:0.25, y:0.4},
-    {name:'果泥西打',nameEn:'Thickened Cider',abv:'2.5-5%',quadrant:0,style:'本质是苹果汁发酵(西打)，靠大量果泥增厚如冰沙。',colorHex:'#ffb6c1',brand:'十七不想玩、纸飞机',tags:['国内新锐','低度微醺'],
+     x:0.15, y:0.2},
+    {name:'🌾小麦白啤',nameEn:'Wheat Beer',abv:'4-6%',quadrant:'lightFresh',style:'艾尔酵母上层发酵，小麦占40%以上，蛋白质丰富带来云雾般朦胧酒体。',colorHex:'#f5e6ca',brand:'福佳白、蓝月',tags:['颜值担当','女生友好'],
+     glossary:['艾尔：上层发酵，酵母在液面工作，风味更丰富','云雾感：小麦蛋白质让酒体呈朦胧的奶白色'],
+     x:0.28, y:0.35},
+    {name:'柏林酸小麦',nameEn:'Berliner Weisse',abv:'2.5-4%',quadrant:'lightFresh',style:'德国北部特色，乳酸菌带来清爽酸味，史上最易饮的啤酒之一。',colorHex:'#c8e87a',brand:'柏林本地精酿',tags:['极低度数','酸味清爽'],
+     glossary:['Berliner Weisse：柏林酸小麦，德国北部传统酸啤','乳酸菌发酵：自然产生柔和酸奶酸味'],
+     x:0.12, y:0.45},
+    {name:'比利时金艾尔',nameEn:'Belgian Golden Ale',abv:'7-9%',quadrant:'lightFresh',style:'比利时香槟风格，酵母带来酚类辛香和酯类果香，酒体干净却风味复杂。',colorHex:'#f0c040',brand:'智美白帽、时代修道院',tags:['修道院','果香复杂'],
+     glossary:['艾尔酵母：产生酯类果香（香蕉、苹果）和酚类辛香（丁香、胡椒）','比利时风格：干净酒体+复杂风味，比修道院更轻盈'],
+     x:0.38, y:0.18},
+    {name:'🍻社交IPA',nameEn:'Session IPA',abv:'4-6%',quadrant:'freshBold',style:'保持IPA香气但降低酒精度，随时开喝不设限。',colorHex:'#e67e22',brand:'Lagunitas',tags:['社交神器','低醉不贵'],
+     glossary:['IPA：印度淡色艾尔，酒花香气浓郁的艾尔啤酒','Session：可连续畅饮的低酒精度定位'],
+     x:0.22, y:0.28},
+    {name:'🫐果泥西打',nameEn:'Thickened Cider',abv:'2.5-5%',quadrant:'lightFresh',style:'本质是苹果汁发酵(西打)，靠大量果泥增厚如冰沙。',colorHex:'#ffb6c1',brand:'十七不想玩、纸飞机',tags:['国内新锐','低度微醺'],
      glossary:['西打(Cider)：以苹果汁为主发酵的酒，不是啤酒','果泥增厚：加入大量果肉纤维，模拟奶昔口感'],
-     x:0.2, y:0.3},
-    {name:'浑浊IPA',nameEn:'Hazy IPA',abv:'5.5-7.5%',quadrant:1,style:'大量干投酒花产生云雾外观，顺滑到怀疑人生。',colorHex:'#e8b84a',brand:'Tree House树屋',tags:['浑浊王者','果香炸弹'],
+     x:0.08, y:0.3},
+
+    // 右上 - 浓郁酒花型
+    {name:'🌿浑浊IPA',nameEn:'Hazy IPA',abv:'5.5-7.5%',quadrant:'freshBold',style:'大量干投酒花产生云雾外观，IPA界的"杨枝甘露"，顺滑到怀疑人生。',colorHex:'#e8b84a',brand:'Tree House树屋',tags:['浑浊王者','果香炸弹'],
      glossary:['干投(Dry Hop)：发酵后投入酒花，最大化香气、最小化苦味','浑浊来源：大量未过滤的蛋白质+酒花油脂'],
-     x:0.65, y:0.25},
-    {name:'NEIPA',nameEn:'NEIPA',abv:'6-7.5%',quadrant:1,style:'新英格兰风格代表，果香爆炸如热带风暴。',colorHex:'#9b59b6',brand:'炼金师、另一半',tags:['超级顺滑','Triple干投'],
+     x:0.62, y:0.18},
+    {name:'NEIPA',nameEn:'NEIPA',abv:'6-7.5%',quadrant:'freshBold',style:'新英格兰风格代表，果香爆炸如热带风暴，丝滑如奶昔。',colorHex:'#9b59b6',brand:'炼金术士、另一半',tags:['超级顺滑','Triple干投'],
      glossary:['NEIPA：新英格兰IPA，浑浊IPA的先驱','Triple干投：三次酒花干投阶段，香气层层叠加'],
-     x:0.7, y:0.35},
-    {name:'果泥酸啤',nameEn:'Smoothie Beer',abv:'8-12%',quadrant:1,style:'基酒：酸艾尔/IPA，果泥≥40%，极厚奶昔感。',colorHex:'#ff69b4',brand:'The Bruery、Evil Twin',tags:['国际顶配','极度浓郁'],
-     glossary:['酸艾尔：引入乳酸菌/醋酸菌产生酸味','果泥添加≥40%：高比例果泥决定厚重口感'],
-     x:0.8, y:0.3},
-    {name:'赛松',nameEn:'Saison',abv:'5-8%',quadrant:2,style:'法语"季节"之意，农舍风格代表，胡椒草本气息。',colorHex:'#daa520',brand:'大道',tags:['农舍风格','小众之选'],
-     glossary:['Saison：法语"季节"，源于农场工人夏日饮品','农舍风格：追求野性、复杂、辛香的酵母特征'],
-     x:0.35, y:0.7},
-    {name:'西海岸IPA',nameEn:'West Coast IPA',abv:'6-7.5%',quadrant:1,style:'美式IPA的祖宗，松针树脂柚子皮从入口香到收口。',colorHex:'#e74c3c',brand:'鹅岛312、石屋',tags:['苦味经典','酒花狂魔'],
-     glossary:['西海岸：加州诞生的IPA风格，酒花苦度为核心','树脂/松针：来自美式酒花C hops的典型香气'],
-     x:0.7, y:0.55},
-    {name:'三倍干投IPA',nameEn:'TDH IPA',abv:'7-9%',quadrant:1,style:'三次酒花干投，香气层层叠加如海浪。',colorHex:'#c0392b',brand:'俄罗斯河',tags:['三倍诚意','香气爆炸'],
-     glossary:['TDH：Triple Dry Hop，三次干投','香气层层叠加：煮沸→发酵中→发酵后各投一次'],
-     x:0.85, y:0.25},
-    {name:'双倍IPA',nameEn:'DIPA',abv:'8-10%',quadrant:3,style:'双倍麦芽双倍酒花，酒精度逼近红酒。',colorHex:'#8b2500',brand:'小普林尼',tags:['酒精度高','极限挑战'],
+     x:0.72, y:0.28},
+    {name:'🤘西海岸IPA',nameEn:'West Coast IPA',abv:'6-7.5%',quadrant:'bitterBold',style:'美式IPA的祖宗，松针树脂柚子皮从入口香到收口。',colorHex:'#e74c3c',brand:'Stone、Sierra Nevada',tags:['苦味经典','酒花狂魔'],
+     glossary:['西海岸：加州诞生的IPA风格，酒花苦度为核心','树脂/松针：来自美式酒花的典型香气'],
+     x:0.62, y:0.42},
+    {name:'三倍干投IPA',nameEn:'TDH IPA',abv:'7-9%',quadrant:'bitterBold',style:'三次酒花干投，香气层层叠加如海浪，酒花狂魔终极目标。',colorHex:'#c0392b',brand:'俄罗斯河',tags:['三倍诚意','香气爆炸'],
+     glossary:['TDH：Triple Dry Hop，三次干投','干投阶段：煮沸→发酵中→发酵后各投一次'],
+     x:0.82, y:0.18},
+    {name:'双倍IPA',nameEn:'DIPA',abv:'8-10%',quadrant:'bitterBold',style:'双倍麦芽双倍酒花，酒精度逼近红酒，是IPA的极限挑战。',colorHex:'#8b2500',brand:'小普林尼、Russian River Pliny',tags:['酒精度高','极限挑战'],
      glossary:['双倍(Double)：原料翻倍，口感更浓烈','Imperial：帝国级别，通常>8%的高酒精度'],
-     x:0.82, y:0.35},
-    {name:'牛奶世涛',nameEn:'Milk Stout',abv:'4-7%',quadrant:2,style:'添加乳糖如牛奶般丝滑，巧克力咖啡基调。',colorHex:'#6d4c41',brand:'左手',tags:['甜滑奶香','睡前之选'],
+     x:0.85, y:0.38},
+
+    // 左下 - 果香发酵香型
+    {name:'古斯',nameEn:'Gose',abv:'4-5%',quadrant:'darkBold',style:'德国咸味小麦啤，加入芫荽籽和盐，酸咸交织，是精酿复兴的经典风格。',colorHex:'#d4a870',brand:'Brouwerij \'t IJ',tags:['咸味','酸味','小众复兴'],
+     glossary:['Gose：德国莱比锡特色，带咸味的小麦啤','芫荽籽+盐：古斯特有的风味组合'],
+     x:0.18, y:0.72},
+    {name:'赛松',nameEn:'Saison',abv:'5-8%',quadrant:'darkBold',style:'法语"季节"之意，农舍风格代表，胡椒草本气息。',colorHex:'#daa520',brand:'Fantôme大道、Brick Farm',tags:['农舍风格','小众之选'],
+     glossary:['Saison：法语"季节"，源于农场工人夏日饮品','农舍风格：追求野性、复杂、辛香的酵母特征'],
+     x:0.38, y:0.65},
+
+    // 右下 - 浓郁麦香型
+    {name:'棕色艾尔',nameEn:'Brown Ale',abv:'4-8%',quadrant:'darkBold',style:'英式传统，烤坚果、巧克力、焦糖三合一，温和易饮的深色艾尔。',colorHex:'#6b3a2a',brand:'Newcastle布朗尼、鹅岛',tags:['英式','温和','烤坚果'],
+     glossary:['Brown Ale：英式深色艾尔，焦糖麦芽带来太妃糖香','分风格：英式偏温和，美式偏酒花'],
+     x:0.65, y:0.68},
+    {name:'🍫波特',nameEn:'Porter',abv:'5-8%',quadrant:'darkBold',style:'18世纪伦敦码头工人挚爱，烘烤麦芽带来面包、咖啡、黑巧克力风味。',colorHex:'#3d2010',brand:'Fuller\'s、岬角',tags:['码头工人','咖啡香'],
+     glossary:['Porter：源于Porters，码头工人喝的深色艾尔','烘烤麦芽：带来面包、咖啡、黑巧克力复合香气'],
+     x:0.75, y:0.78},
+    {name:'🥛牛奶世涛',nameEn:'Milk Stout',abv:'4-7%',quadrant:'darkBold',style:'添加乳糖如牛奶般丝滑，巧克力咖啡基调。',colorHex:'#6d4c41',brand:'Left Hand左手',tags:['甜滑奶香','睡前之选'],
      glossary:['乳糖：牛奶糖，发酵后无法被酵母消化，留存甜味','甜世涛：乳糖带来甜感，平衡深色麦芽的苦'],
-     x:0.75, y:0.75},
-    {name:'世涛',nameEn:'Stout',abv:'5-8%',quadrant:2,style:'深烘焙麦芽带来咖啡巧克力焦糖三重奏。',colorHex:'#3e2723',brand:'健力士',tags:['咖啡搭档','巧克力香'],
+     x:0.82, y:0.65},
+    {name:'☕世涛',nameEn:'Stout',abv:'5-8%',quadrant:'darkBold',style:'深烘焙麦芽带来咖啡巧克力焦糖三重奏。',colorHex:'#3e2723',brand:'Guinness健力士',tags:['咖啡搭档','巧克力香'],
      glossary:['深烘焙麦芽：焦化麦芽带来咖啡、巧克力、烘烤香','Stout：源于Strong Ale，特指浓郁深色艾尔'],
-     x:0.8, y:0.8},
-    {name:'帝国世涛',nameEn:'Imperial Stout',abv:'8-12%',quadrant:3,style:'俄罗斯帝国出口北欧的御用酒，波本桶陈酿。',colorHex:'#1a0f0a',brand:'Founders CBS',tags:['帝王享受','可陈年'],
+     x:0.88, y:0.8},
+    {name:'帝国世涛',nameEn:'Imperial Stout',abv:'8-12%',quadrant:'darkBold',style:'俄罗斯帝国出口北欧的御用酒，波本桶陈酿，可陈年收藏。',colorHex:'#1a0f0a',brand:'Founders CBS、角头鲨90分钟',tags:['帝王享受','可陈年'],
      glossary:['帝国世涛：为沙俄酿造的高酒精版本','波本桶陈酿：在威士忌橡木桶中陈化，吸收桶香'],
-     x:0.85, y:0.85}
+     x:0.92, y:0.88}
 ];
 
 var currentBeer = null;
@@ -1442,11 +1468,13 @@ node.append('circle')
     .attr('stroke-dasharray', '8 4')
     .attr('opacity', 0.5);
 
-// 内圈（实心）
+// 内圈（实心+白色描边确保深色背景下可见）
 node.append('circle')
     .attr('class', 'main')
     .attr('r', function(d) { return d.radius; })
     .attr('fill', function(d) { return d.beer.colorHex; })
+    .attr('stroke', '#fff')
+    .attr('stroke-width', 2)
     .style('filter', 'drop-shadow(0 0 12px rgba(255,20,147,0.4))');
 
 // 高光点
@@ -1457,11 +1485,27 @@ node.append('circle')
     .attr('r', function(d) { return d.radius * 0.2; })
     .attr('fill', 'rgba(255,255,255,0.35)');
 
+// emoji 符号（从 name 中提取）
+node.append('text')
+    .attr('class', 'node-emoji')
+    .attr('text-anchor', 'middle')
+    .attr('dominant-baseline', 'central')
+    .style('font-size', function(d) { return (d.radius * 0.9) + 'px'; })
+    .style('pointer-events', 'none')
+    .text(function(d) {
+        var name = d.beer.name;
+        var match = name.match(/[\u{1F300}-\u{1F9FF}]|[\u{2600}-\u{26FF}]|[\u{2700}-\u{27BF}]|[\u{1F600}-\u{1F64F}]|[\u{1F680}-\u{1F6FF}]|[\u{1F1E0}-\u{1F1FF}]/u);
+        return match ? match[0] : '';
+    });
+
 // 标签
 node.append('text')
     .attr('class', 'node-label')
     .attr('dy', function(d) { return d.radius + 24; })
-    .text(function(d) { return d.beer.name; });
+    .text(function(d) {
+        // 去掉 emoji，只显示中文名
+        return d.beer.name.replace(/[\u{1F300}-\u{1F9FF}]|[\u{2600}-\u{26FF}]|[\u{2700}-\u{27BF}]|[\u{1F600}-\u{1F64F}]|[\u{1F680}-\u{1F6FF}]|[\u{1F1E0}-\u{1F1FF}]/gu, '').trim();
+    });
 
 simulation.on('tick', function() {
     link
